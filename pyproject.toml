@@ -1,0 +1,23 @@
+[project]
+name = 'factory-mes-erp-simulator'
+version = "0.2.0"
+description = "Independent manufacturing factory data producer"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    'fastapi==0.121.2',
+    'uvicorn==0.38.0',
+    'pymssql==2.4.6',
+    "sqlalchemy>=2.0,<2.1",
+    "oracledb>=3,<5",
+    "psycopg[binary]>=3.2,<4",
+    "pymysql>=1.1,<2",
+    "cryptography>=46,<50",
+    "pyodbc>=5.2,<6",
+]
+
+[dependency-groups]
+dev = ["httpx==0.28.1", "pytest==8.4.2"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

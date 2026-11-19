@@ -1,0 +1,66 @@
+{
+  "services": {
+    "app": {
+      "build": {
+        "context": "."
+      },
+      "image": "factory-mes-erp-simulator:local",
+      "restart": "unless-stopped",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=64m"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "mem_limit": "${APP_MEMORY:-512m}",
+      "cpus": "${APP_CPUS:-1.0}",
+      "pids_limit": 128,
+      "stop_grace_period": "90s",
+      "ports": [
+        "${BIND_IP:-127.0.0.1}:${APP_PORT}:8080"
+      ],
+      "environment": {
+        "TZ": "Asia/Tokyo",
+        "DATA_DIR": "/data",
+        "MIN_AVAILABLE_GIB": "${MIN_AVAILABLE_GIB:-6}",
+        "SQL_HOST": "${SQL_HOST:-}",
+        "SQL_PORT": "${SQL_PORT:-3510}",
+        "SQL_DATABASE": "${SQL_DATABASE:-FactorySourceLab}",
+        "SQL_USER": "${SQL_USER:-factory_source_writer}",
+        "SQL_PASSWORD_FILE": "/run/secrets/sql-password",
+        "CONNECTION_FILES_DIR": "/data/connection-files",
+        "KRB5_CONFIG": "/data/connection-files/krb5.conf",
+        "KRB5CCNAME": "FILE:/data/connection-files/krb5cc",
+        "PGSERVICEFILE": "/data/connection-files/pg_service.conf",
+        "ODBCINI": "/data/connection-files/odbc.ini",
+        "ORACLE_CLIENT_MODE": "${ORACLE_CLIENT_MODE:-thin}"
+      },
+      "volumes": [
+        "app-data:/data",
+        "${SQL_PASSWORD_FILE:-/dev/null}:/run/secrets/sql-password:ro"
+      ],
+      "labels": [
+        "app.owner=factory-sources-v1",
+        "app.component=factory-mes-erp-simulator",
+        "traefik.enable=false",
+        "${FACTORY_GUARD_LABEL_PREFIX:-factory}.guard.managed=true",
+        "lab.role=heavy",
+        "lab.stop_priority=70"
+      ],
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      }
+    }
+  },
+  "volumes": {
+    "app-data": {}
+  }
+}

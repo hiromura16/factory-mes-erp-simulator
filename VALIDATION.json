@@ -1,0 +1,60 @@
+{
+  "version": "0.2.0",
+  "validated_on": "2026-11-14",
+  "preset_contract": 2,
+  "presets_per_app": 48,
+  "normal_presets": 24,
+  "anomaly_presets": 24,
+  "inline_help": "hover and keyboard focus",
+  "preset_descriptions": [
+    "assumptions",
+    "generated behavior",
+    "verification points",
+    "prerequisites"
+  ],
+  "source_specific_notes": "Unconfigured enterprise authentication and NFS need environment-specific acceptance; see README.",
+  "profiles_and_presets_persist_across_redeployment": true,
+  "credentials_exported": false,
+  "source_credential_scan": "clean",
+  "host_test_fixtures": "stopped after acceptance",
+  "app": "sql",
+  "unit_tests": {
+    "passed": 24,
+    "skipped_external_fixture_tests": 1
+  },
+  "validation": {
+    "databases_actually_verified": [
+      "SQL Server 2022 Developer / pymssql",
+      "SQL Server / Microsoft ODBC 18",
+      "Oracle Free",
+      "PostgreSQL",
+      "MySQL",
+      "MariaDB",
+      "SQLite"
+    ],
+    "external_driver_crud": "passed",
+    "live_insert_rows": 10000,
+    "live_upsert_rows": 30,
+    "live_odbc_insert_rows": 100,
+    "fault_acceptance": "COMMIT-boundary injection rolls back all rows in the failed batch; prior commits are preserved",
+    "enterprise_authentication": "Windows password, Kerberos, Entra and Oracle external/wallet paths implemented; no production domain/Entra/Wallet available for live login tests"
+  },
+  "additional_source_proposal": "docs/source-roadmap.md",
+  "presets_total_across_apps": 144,
+  "browser_acceptance": "hover/focus help, connection selection, detailed descriptions, anomaly preview/editor, mobile viewport",
+  "published_json_schema": "matches anomaly/fault contracts",
+  "admin_login_required": false,
+  "login_removal_acceptance": {
+    "ui_api_metrics": "no login",
+    "preview_without_credentials": "passed",
+    "cross_origin_mutation_blocked": "passed",
+    "hosts": [
+      "localhost",
+      "LAN",
+      "Tailscale"
+    ],
+    "browser_without_credentials": "passed",
+    "preview": "passed"
+  },
+  "evidence_scope": "Historical acceptance record from the stated validation date; not rerun or newly certified by the sanitized sample publication. Revalidate in the intended deployment environment."
+}
