@@ -1,5 +1,7 @@
 # 汎用SQLデータ投入ツール
 
+実装の入口・データの流れ・各処理の境界は、[日本語コード読解ガイド](CODE_GUIDE.ja.md)を参照してください。
+
 SQL Server / Oracle / PostgreSQL / MySQL / MariaDB / SQLiteへ任意スキーマの疑似データを投入します。
 
 | DB | 認証・接続方式 |

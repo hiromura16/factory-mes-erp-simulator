@@ -1,3 +1,4 @@
+# モジュール読解: 表の準備・列調査と、既存表に対する合成行のバッチ反映を別の操作として提供する。
 """SQLAlchemy Core adapters for SQL Server, Oracle, PostgreSQL, MySQL and SQLite."""
 
 from __future__ import annotations
@@ -15,10 +16,12 @@ from generation import GenerationError, batch_limit, generate_record, inject_fau
 
 
 def password(profile):
+    """接続用に秘密値を取り出す。未設定なら空文字を返す。"""
     return profile.password.get_secret_value() if profile.password else ""
 
 
 def sqlite_path(profile):
+    """SQLiteの保存先を許可ルート内へ限定し、親ディレクトリを準備する。"""
     root = Path(
         os.environ.get(
             "SQLITE_ROOT", str(Path(os.environ.get("DATA_DIR", "./data")) / "databases")
@@ -34,12 +37,14 @@ def sqlite_path(profile):
 
 
 def engine_for(profile):
+    """接続方式別のエンジン生成へ委譲し、SQLite用パス検査を渡す。"""
     from db_connections import engine_for as connect_engine
 
     return connect_engine(profile, sqlite_path)
 
 
 def column_type(field):
+    """宣言型をSQLAlchemy型へ写し、必要なDB固有型を選ぶ。"""
     if field.data_type == "string":
         return sa.Unicode(field.length)
     if field.data_type == "integer":
@@ -56,6 +61,7 @@ def column_type(field):
 
 
 def table_definition(spec):
+    """生成項目からDDL用の表定義を作る。自動採番は使わない。"""
     return sa.Table(
         spec.sql.table,
         sa.MetaData(),
@@ -75,6 +81,7 @@ def table_definition(spec):
 
 
 def test_connection(profile):
+    """疎通クエリと表一覧の取得を行い、最後にエンジンを解放する。"""
     engine = engine_for(profile)
     try:
         with engine.connect() as conn:
@@ -89,6 +96,7 @@ def test_connection(profile):
 
 
 def prepare_table(profile, spec):
+    """対象表がなければ作成し、実際の列情報を返す。既存表は変更しない。"""
     engine = engine_for(profile)
     try:
         with engine.begin() as conn:
@@ -116,6 +124,7 @@ def prepare_table(profile, spec):
 
 
 def inspect_table(profile, spec):
+    """既存表の列・NULL・主キー情報を反映して返す。表は作成しない。"""
     engine = engine_for(profile)
     try:
         with engine.connect() as conn:
@@ -142,6 +151,7 @@ def inspect_table(profile, spec):
 
 
 def ddl(profile, spec):
+    """接続方式に合うCREATE TABLE文を生成して返す。DDLは実行しない。"""
     engine = engine_for(profile)
     try:
         return {
@@ -157,6 +167,7 @@ def ddl(profile, spec):
 
 
 def convert_rows(spec, rows, mapping, table=None, dialect=None):
+    """生成行を実列名へ対応付け、日時・小数・JSONをDB向けの値へ変換する。"""
     output = []
     for row in rows:
         result = {}
@@ -187,6 +198,7 @@ def convert_rows(spec, rows, mapping, table=None, dialect=None):
 
 
 def existing_keys(conn, table, keys, rows):
+    """問い合わせを分割し、今回の候補行のうち既存の主キー組を収集する。"""
     found = set()
     chunk_size = max(1, min(500, 1500 // len(keys)))
     for offset in range(0, len(rows), chunk_size):
@@ -206,6 +218,11 @@ def existing_keys(conn, table, keys, rows):
 
 
 def handle(spec, ctx, profile, store):
+    """既存表の列と主キーを照合し、生成行をバッチ単位のトランザクションで反映する。
+
+    更新系では接続先と一致する主キー定義を必須とする。進捗はコミット後に
+    加算し、後続バッチの失敗で先行コミットが戻るとは扱わない。
+    """
     engine = engine_for(profile)
     try:
         with engine.connect() as conn:
