@@ -56,6 +56,8 @@ insert / upsert / update / deleteを選択。対象テーブルの列・主キ�
 
 ## ローカル起動
 
+Dokployで設定・配置から疎通テストまで進める場合は、[Dokploy導入・検証手順](docs/dokploy-deploy.md)を参照してください。
+
 Python 3.12とuv、Docker Composeを使用します。
 
 ```sh
