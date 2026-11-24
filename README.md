@@ -18,7 +18,7 @@ Kerberos設定はconnection-filesのkrb5.conf / krb5cc、libpq serviceはpg_serv
 
 Oracle Thinが既定。Thick外部認証を使う場合はOracle Instant Clientを事前配置し、ORACLE_CLIENT_MODE=thickと必要ならORACLE_CLIENT_LIB_DIRで起動します。Thin/Thickはプロセス全体の設定なので、切替にはアプリの再起動が必要です。Kerberos/GSSや各外部認証は接続先の設定も必要で、実際のドメイン環境での検証は別途行ってください。
 
-insert / upsert / update / deleteを選択。対象テーブルの列・主キーを画面で確認でき、DDLの表示と、未作成テーブルの作成ができます。既存テーブルの自動変更・削除は行いません。書き込みユーザーにDDL権限を渡さず、管理者がDDLを適用する運用も可能です。MySQL/MariaDB/SQLiteではスキーマ欄は通常空欄。既定のテーブル例はsynthetic.sample_recordsです。既存テーブルは変更・削除しません。
+insert / upsert / update / deleteを選択。対象テーブルの列・主キーを画面で確認でき、DDLの表示と、未作成テーブルの作成ができます。既存テーブルの自動変更・削除は行いません。画面は表示中の接続プロファイルの版を操作に固定します。実行開始・テーブル作成の前に版が変わっていれば中断し、表作成は接続先・版・テーブルを別途確認します。update / delete / upsertの実行前も、同じ項目に加えて操作と設定した生成行数を確認します。生成行数は実際の変更件数や連鎖処理の件数ではありません。書き込みユーザーにDDL権限を渡さず、管理者がDDLを適用する運用も可能です。MySQL/MariaDB/SQLiteではスキーマ欄は通常空欄。既定のテーブル例はsynthetic.sample_recordsです。既存テーブルは変更・削除しません。
 
 新規起動時はSQL_HOSTが空ならSQLiteを自動登録します。SQLiteを試す場合は、画面でテーブルを作成してから生成してください。SQL_HOSTが指定される構成では初回だけ従来の専用writer資格情報を暗号化プロファイルへ取り込みます。
 
