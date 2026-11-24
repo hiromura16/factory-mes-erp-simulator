@@ -30,6 +30,8 @@ Oracle Thinが既定。Thick外部認証を使う場合はOracle Instant Client�
 
 ## 操作ガイド
 
+[ひな型の選び方・詳細設定の画面・自分のひな型の作り方](docs/preset-guide.md)
+
 [![ひな型の読込、対象の確認、見本、テーブル準備と書込の順を示すSQL画面。青い枠は詳細設定。](docs/images/operation-guide.png)](docs/images/operation-guide.png)
 
 「基本設定」でデータベース、テーブル、生成件数と書き込み方法を選び、「データの見本を見る」を押します。データ項目や主キー、詳細な実行条件を変えるときは「詳細設定」を開きます。

@@ -1009,8 +1009,11 @@ async function refreshConnections() {
 // 今選ばれたプリセットの説明を反映し、なければ編集方法の案内を表示する。
 function updatePresetDetails() {
   const item = state.presets.find(/* 選択欄の値と一致するプリセットを、表示名ではなくIDで探す。 */ (p) => p.id === $("#presetSelect").value);
-  $("#presetDetails").textContent =
-    item?.spec.description || "各設定は読み込み後に自由に変更できます。";
+  const parts = (item?.spec.description || "").trim().split(/\r?\n\s*\r?\n/);
+  const scenario = parts.shift()?.replace(/^【想定(?:する状況)?】\s*/, "").trim();
+  $("#presetScenario").textContent = scenario || "このひな型には状況の説明がありません。";
+  $("#presetDetails").textContent = parts.join("\n\n");
+  $("#presetDetailsPanel").hidden = parts.length === 0;
 }
 // 最新のプリセット一覧を取得し、存在する限り以前の選択を保つ。
 async function refreshPresets() {
@@ -1032,8 +1035,7 @@ function showJson() {
   $("#presetJson").value = JSON.stringify(v, null, 2);
 }
 // 入力欄のJSONを解析し、プレビューAPIが検証した設定を返す。構文・検証失敗は呼出側へ伝える。
-async function parsePreset() {
-  const parsed = JSON.parse($("#presetJson").value);
+async function parsePreset(parsed = JSON.parse($("#presetJson").value)) {
   return (await api("/api/preview", parsed)).validated_spec;
 }
 // 値を整形JSONとしてブラウザーからダウンロードし、不要になったオブジェクトURLを解放する。
@@ -1329,7 +1331,11 @@ async function init() {
   });
   action("#toPreset", /* 現在のフォームからプリセット用JSONを用意し、プリセット画面を開く。 */ () => {
     showJson();
+    $("#presetId").value = "";
+    $("#presetDisplayName").value = "";
+    $("#presetPurpose").value = "";
     tab("presets");
+    $("#presetId").focus();
   });
   action("#refreshJson", /* 表示中のJSONを現在のフォームの検証済み設定で更新する。 */ () => {
     showJson();
@@ -1347,12 +1353,19 @@ async function init() {
       throw new Error(
         "プリセットIDを英数字・下線・ハイフンで指定してください。",
       );
-    const spec = await parsePreset();
+    const draft = JSON.parse($("#presetJson").value);
+    const displayName = $("#presetDisplayName").value.trim();
+    const purpose = $("#presetPurpose").value.trim();
+    if (displayName) draft.name = displayName;
+    if (purpose) draft.description = purpose;
+    const spec = await parsePreset(draft);
     await api("/api/presets/" + id, spec);
+    $("#presetJson").value = JSON.stringify(spec, null, 2);
     state.spec = spec;
     renderRun();
     await refreshPresets();
     $("#presetSelect").value = id;
+    updatePresetDetails();
     notify("プリセット " + id + " を保存しました。");
   });
   action("#exportPreset", /* JSONを検証してからダウンロードし、空の名前には既定値を使う。 */ async () =>
