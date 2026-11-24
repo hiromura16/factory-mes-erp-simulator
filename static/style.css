@@ -534,3 +534,24 @@ th {
   background: var(--panel);
   border-radius: 6px;
 }
+
+.advanced-stack.grid {
+  display: block;
+}
+.advanced-stack > .card {
+  margin-bottom: 10px;
+}
+.advanced-stack > .card:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 520px) {
+  nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .nav {
+    min-width: 0;
+    white-space: normal;
+  }
+}

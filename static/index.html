@@ -10,11 +10,8 @@
   <body>
     <!-- 読解: ツール名と接続表示の領域。health表示はブラウザーが取得した状態で更新する。 --><header>
       <div>
-        <span class="eyebrow"
-          >DATA SOURCE STUDIO <span class="version">v0.2</span></span
-        >
-        <h1 id="title">データ生成スタジオ</h1>
-        <p id="subtitle">接続・データ定義・実行条件を、自分の仕様に。</p>
+        <h1 id="title">SQLデータ投入</h1>
+        <p id="subtitle">合成データの見本を確認し、指定したデータベースに書き込みます。</p>
       </div>
       <span id="health" class="badge">接続中</span>
     </header>
@@ -22,17 +19,17 @@
       <!-- 読解: data-tabと画面IDの対応で切り替えるナビと説明欄。実処理の開始とは分離する。 --><aside>
         <nav aria-label="メインメニュー">
           <button class="nav active" data-tab="generate">
-            01 <span>データをつくる</span></button
+            <span>データをつくる</span></button
           ><button class="nav" data-tab="connections">
-            02 <span>接続先</span></button
+            <span>接続先</span></button
           ><button class="nav" data-tab="presets">
-            03 <span>プリセット / JSON</span></button
+            <span>プリセット / JSON</span></button
           ><button class="nav" data-tab="history">
-            04 <span>実行履歴</span>
+            <span>実行履歴</span>
           </button>
         </nav>
         <div class="aside-note">
-          <span class="eyebrow">CONTEXT HELP</span>
+          <strong>入力項目の説明</strong>
           <p>
             項目にマウスを重ねると、その場で説明を表示します。<b>?</b>
             にキーボードで移動しても読めます。
@@ -45,57 +42,57 @@
         <!-- 読解: プリセット読込み・動的生成条件・プレビュー・実行受付をまとめる。プレビューと投入を別ボタンにする。 --><section id="generate" class="tab active">
           <div class="section-head">
             <div>
-              <span class="eyebrow">GENERATOR</span>
               <h2>データをつくる</h2>
             </div>
-            <span class="muted">業種を選ばず、項目から定義</span>
           </div>
           <div class="toolbar card">
             <label
               class="compact hint"
               data-help="保存済みプリセットを読み込みます。画面の編集中の設定は置き換わります。"
-              >プリセット<select id="presetSelect"></select></label
-            ><button id="loadPreset">読み込む</button
+              >ひな型（プリセット）<select id="presetSelect"></select></label
+            ><button id="loadPreset">ひな型を読み込む</button
             ><button id="resetRun" class="ghost">初期値</button
             ><button id="toPreset" class="ghost">この設定を保存…</button>
           </div>
-          <p id="presetDetails" class="note" aria-live="polite"></p>
+          <details class="card">
+            <summary>選んだひな型の説明</summary>
+            <p id="presetDetails" class="note" aria-live="polite"></p>
+          </details>
           <!-- 読解: スキーマからJavaScriptが生成欄を構築する空の受け皿。既定のブラウザー送信ではなく操作関数で検証する。 --><form id="runForm" novalidate><div id="runEditor"></div></form>
-          <div class="actionbar">
-            <button
-              id="preview"
-              class="secondary"
-              data-help="正常位置と異常位置から最大12件を生成します。接続先への通信・書き込み・送信はありません。"
-            >
-              プレビュー</button
-            ><button
-              id="start"
-              class="primary"
-              data-help="現在の設定と接続プロファイルの版を固定して実行します。"
-            >
-              生成を開始</button
-            ><span class="muted">実行は各ツール1件ずつ</span>
-          </div>
-          <!-- 読解: SQLツールだけで表示する表検査・DDL表示・表準備。表示だけの操作とDDL実行を区別する。 --><div id="sqlActions" class="toolbar card" hidden>
-            <button id="inspectTable">接続先の列を確認</button
-            ><button id="showDdl">作成DDLを表示</button
-            ><button
-              id="prepareTable"
-              data-help="保存済みの接続先と対象を確認してから、テーブルが存在しない場合だけ作成します。既存テーブルの変更・削除は行いません。CREATE TABLE権限が必要です。"
-            >
-              未作成のテーブルを作成
-            </button>
-          </div>
+          <section class="card" aria-labelledby="sqlPreviewTitle">
+            <h3 id="sqlPreviewTitle">見本を確認</h3>
+            <p class="muted">データベースへの接続・書き込みなしで、生成するデータを確認します。</p>
+            <button id="preview" class="primary" type="button">データの見本を見る</button>
+          </section>
           <!-- 読解: 代表サンプルとJSONを表示する領域。ここでの表示成功は全件・下流到達の保証ではない。 --><div id="previewPanel" class="card" hidden>
             <h3>プレビュー <span class="badge">書き込みなし</span></h3>
             <p id="previewNote"></p>
-            <div id="previewTable" class="table-scroll"></div>
+            <div id="previewTable" class="table-scroll" tabindex="0" role="region" aria-label="生成データの見本"></div>
             <details>
               <summary>出力JSON / 処理結果</summary>
               <pre id="previewJson"></pre>
             </details>
           </div>
           <!-- 読解: 非同期ジョブの保存済み状態を表示する。受付と完了を区別するため独立した領域にする。 --><div id="currentJob" class="card" hidden></div>
+          <!-- 読解: SQLツールだけで表示する表検査・DDL表示・表準備。表示だけの操作とDDL実行を区別する。 --><section id="sqlActions" class="card" hidden>
+            <h3>テーブルを確認・準備</h3>
+            <p class="muted">既存テーブルは列を確認し、未作成の場合は確認画面から新しく作成できます。</p>
+            <div class="actionbar">
+              <button id="inspectTable">接続先の列を確認</button>
+              <button id="showDdl">作成DDLを表示</button>
+              <button
+              id="prepareTable"
+              data-help="保存済みの接続先と対象を確認してから、テーブルが存在しない場合だけ作成します。既存テーブルの変更・削除は行いません。CREATE TABLE権限が必要です。"
+              >
+                未作成のテーブルを作成
+              </button>
+            </div>
+          </section>
+          <section class="card" aria-labelledby="sqlRunTitle">
+            <h3 id="sqlRunTitle">実行</h3>
+            <p class="muted">基本設定で指定した接続先とテーブルに書き込みます。進捗や結果は実行履歴で確認できます。</p>
+            <button id="start" type="button">データベースへ書き込む</button>
+          </section>
         </section>
         <!-- 読解: 保存された接続先の一覧と編集。疎通試験は保存済みIDを使い、秘密値の再表示は行わない。 --><section id="connections" class="tab">
           <div class="section-head">
