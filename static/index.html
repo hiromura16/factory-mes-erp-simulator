@@ -59,7 +59,7 @@
             <p id="presetDetails" class="note" aria-live="polite"></p>
           </details>
           <!-- 読解: スキーマからJavaScriptが生成欄を構築する空の受け皿。既定のブラウザー送信ではなく操作関数で検証する。 --><form id="runForm" novalidate><div id="runEditor"></div></form>
-          <section class="card" aria-labelledby="sqlPreviewTitle">
+          <section class="card preview-step" aria-labelledby="sqlPreviewTitle">
             <h3 id="sqlPreviewTitle">見本を確認</h3>
             <p class="muted">データベースへの接続・書き込みなしで、生成するデータを確認します。</p>
             <button id="preview" class="primary" type="button">データの見本を見る</button>
@@ -88,7 +88,7 @@
               </button>
             </div>
           </section>
-          <section class="card" aria-labelledby="sqlRunTitle">
+          <section class="card run-step" aria-labelledby="sqlRunTitle">
             <h3 id="sqlRunTitle">実行</h3>
             <p class="muted">基本設定で指定した接続先とテーブルに書き込みます。進捗や結果は実行履歴で確認できます。</p>
             <button id="start" type="button">データベースへ書き込む</button>
