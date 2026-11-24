@@ -312,75 +312,67 @@ function renderObject(container, schema, model, root, exclude = []) {
 }
 // 共通条件・生成列・出力方式・異常条件を、現在のサービスと設定に合わせて再描画する。
 function renderRun() {
-  const root = state.schemas.run,
-    target = $("#runEditor");
+  const root = state.schemas.run;
+  const target = $("#runEditor");
+  const advancedOpen = $("#sqlAdvanced")?.open ?? false;
   target.replaceChildren();
-  const [common, body] = block(
-    "01 / 実行条件",
-    "生成量と速度、再現性を決めます。接続は保存済みのプロファイルを選択します。",
+  const [basic, basicBody] = block(
+    "基本設定",
+    "接続先と対象テーブルを確認します。既存行を変更する場合は操作も確認してください。",
   );
-  renderObject(body, root, state.spec, root, [
-    "version",
-    "connection_revision",
-    "task",
-    "parameters",
-    "fields",
-    "anomalies",
-    "faults",
-    "sql",
-    "files",
-    "stream",
+  const { rows, connection_id: connection } = root.properties;
+  renderObject(basicBody, { properties: {
+    connection_id: { ...connection, title: "書き込むデータベース" },
+    rows: { ...rows, title: "生成する件数" },
+  } }, state.spec, root);
+  const sql = deref(root.properties.sql, root);
+  const { schema_name, table, operation, ...sqlOptions } = sql.properties;
+  renderObject(basicBody, { properties: {
+    schema_name,
+    table: { ...table, title: "対象テーブル名" },
+  } }, state.spec.sql, root);
+  state.spec.sql.operation ??= defaultValue(operation, root);
+  const method = control("operation", { ...operation, title: "書き込み方法" },
+    state.spec.sql.operation, (value) => { state.spec.sql.operation = value; }, root);
+  const methodLabels = {
+    insert: "新しい行を追加",
+    upsert: "新規追加・既存行の更新",
+    update: "既存行を更新",
+    delete: "既存行を削除",
+  };
+  for (const choice of method.querySelector("select").options) {
+    choice.textContent = methodLabels[choice.value] + "（" + choice.value + "）";
+  }
+  basicBody.append(method);
+
+  const [advanced, body] = block(
+    "詳細設定",
+    "データ項目、主キーやスキーマの条件、再現性、異常や処理障害を調整します。",
+    advancedOpen,
+  );
+  advanced.id = "sqlAdvanced";
+  body.classList.add("advanced-stack");
+  const [run, runBody] = block("実行条件・再現性", "", false);
+  renderObject(runBody, root, state.spec, root, [
+    "version", "connection_revision", "connection_id", "rows", "task",
+    "parameters", "fields", "anomalies", "faults", "sql", "files", "stream",
   ]);
-  target.append(common);
-  const [param, pbody] = block(
-    "02 / 共有パラメーター",
-    "同じ値を複数の生成ルールから $名前 で参照できます。",
-  );
-  pbody.append(
-    control(
-      "parameters",
-      root.properties.parameters,
-      state.spec.parameters,
-      /* JSON入力で検証済みのパラメーター集合を実行設定に戻す。 */ (v) => (state.spec.parameters = v),
-      root,
-    ),
-  );
-  pbody.firstChild.style.gridColumn = "1 / -1";
-  target.append(param);
-  const [fields, fbody] = block(
-    "03 / 自由なデータ項目",
-    "上から順に生成。他の項目を参照する場合は、参照元を先に置きます。",
-  );
-  fbody.style.display = "block";
-  renderFields(fbody);
-  target.append(fields);
-  const key = { sql: "sql", files: "files", stream: "stream" }[state.info.kind];
-  const [output, obody] = block(
-    "04 / " + root.properties[key].title,
-    root.properties[key].description,
-  );
-  renderObject(obody, deref(root.properties[key], root), state.spec[key], root);
-  target.append(output);
-  const [ab, ag] = block(
-    "05 / データ異常の注入",
-    "正常データへ、期間・割合・条件を指定して異常を重ねます。",
-    false,
-  );
-  ag.style.display = "block";
-  renderAnomalies(ag);
-  target.append(ab);
-  const [fb, fg] = block(
-    "06 / 処理障害のシミュレーション",
-    "この実行だけに障害や遅延を注入します。意図的にfailedで終了する設定があります。",
-    false,
-  );
-  renderObject(
-    fg,
-    deref(root.properties.faults, root),
-    state.spec.faults,
-    root,
-  );
-  target.append(fb);
+  const [params, paramsBody] = block("共有パラメーター", "", false);
+  paramsBody.append(control("parameters", root.properties.parameters,
+    state.spec.parameters, (value) => (state.spec.parameters = value), root));
+  paramsBody.firstChild.style.gridColumn = "1 / -1";
+  const [fields, fieldsBody] = block("データ項目・生成ルール", "", false);
+  fieldsBody.style.display = "block";
+  renderFields(fieldsBody);
+  const [tableOptions, tableBody] = block("テーブル・SQLの追加設定", "", false);
+  renderObject(tableBody, { ...sql, properties: sqlOptions }, state.spec.sql, root);
+  const [anomalies, anomaliesBody] = block("異常データの設定", "", false);
+  anomaliesBody.style.display = "block";
+  renderAnomalies(anomaliesBody);
+  const [faults, faultsBody] = block("処理障害のシミュレーション", "", false);
+  renderObject(faultsBody, deref(root.properties.faults, root), state.spec.faults, root);
+  body.append(run, params, fields, tableOptions, anomalies, faults);
+  target.append(basic, advanced);
 }
 // 生成項目を順序どおりカード表示し、並べ替え・複製・追加を編集モデルに反映できるようにする。
 function renderFields(parent) {
@@ -521,7 +513,10 @@ function validateForm(selector) {
   const form = $(selector);
   for (const input of form.querySelectorAll("input,textarea,select")) {
     if (!input.checkValidity()) {
-      input.closest("details")?.setAttribute("open", "");
+      for (let details = input.closest("details"); details;
+        details = details.parentElement.closest("details")) {
+        details.open = true;
+      }
       input.reportValidity();
       throw new Error("入力内容を確認してください。");
     }
