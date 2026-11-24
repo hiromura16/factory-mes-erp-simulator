@@ -175,7 +175,8 @@ function control(name, schema, value, set, root) {
   if (name === "connection_id") {
     const input = el("select", { id });
     for (const p of state.connections)
-      input.append(el("option", { value: p.id }, p.name + " · " + p.kind));
+      input.append(el("option", { value: p.id },
+        p.name + " · " + p.kind + " · 版 " + p.revision));
     if (!state.connections.some(/* 編集中の接続IDが登録一覧にあるか確認する。なければ入力値を消さず未登録として表示する。 */ (p) => p.id === value))
       input.append(el("option", { value }, value + " (未登録)"));
     input.value = value;
@@ -531,6 +532,62 @@ function runSpec() {
   validateForm("#runForm");
   return clone(state.spec);
 }
+
+// 表示中の保存済み接続先を、元の編集モデルと切り離した要求に固定する。
+function sqlActionSnapshot() {
+  const spec = runSpec();
+  const profile = state.connections.find((p) => p.id === spec.connection_id);
+  if (!profile || !Number.isSafeInteger(profile.revision) || profile.revision < 1)
+    throw new Error("保存済みのデータベース接続先を選んでください。");
+  spec.connection_revision = profile.revision;
+  return {spec, profile};
+}
+
+// 書き込み前は現行版を再確認し、表作成と既存行を変え得る操作は対象を明示して確認する。
+async function sqlDatabaseAction(
+  path, request = api, confirmWrite = (message) => window.confirm(message),
+  refresh = refreshConnections,
+) {
+  const snapshot = sqlActionSnapshot();
+  const {spec, profile} = snapshot;
+  const prepare = path === "/api/table/prepare";
+  const start = path === "/api/runs";
+  const risky = start && ["update", "delete", "upsert"].includes(spec.sql.operation);
+  if (prepare || start) {
+    const latest = (await request("/api/connections")).connections
+      .find((p) => p.id === profile.id);
+    if (latest?.revision !== profile.revision) {
+      await refresh();
+      throw new Error("接続先が更新されました。表示された版を確認してからやり直してください。");
+    }
+    // 再確認の応答待ち中にフォームを変えた場合は未確認条件を適用しない。
+    if (JSON.stringify(sqlActionSnapshot().spec) !== JSON.stringify(spec))
+      throw new Error("実行条件が変更されました。確認してからやり直してください。");
+  }
+  if (prepare || risky) {
+    const table = spec.sql.schema_name
+      ? spec.sql.schema_name + "." + spec.sql.table
+      : spec.sql.table + "（接続先の既定スキーマ）";
+    const destination = profile.name + " / " + profile.id + " · " +
+      profile.kind + " · 版 " + spec.connection_revision;
+    const scope = "接続先: " + destination + "\n対象テーブル: " + table;
+    const operation = {
+      update: "既存行を更新",
+      delete: "既存行を削除",
+      upsert: "未登録行を追加し、該当する既存行を更新",
+    };
+    const message = prepare
+      ? "未作成のテーブルを作成します。\n" + scope + "\n既存テーブルは変更しません。"
+      : "データベースへの書き込みを開始します。\n" + scope +
+        "\n操作: " + spec.sql.operation + "（" + operation[spec.sql.operation] + "）" +
+        "\n設定した生成行数: " + spec.rows.toLocaleString("ja-JP") + "件" +
+        "\n実際の更新・削除件数や連鎖処理の件数を示すものではありません。";
+    if (!confirmWrite(message)) return null;
+  }
+  // 確認直後に接続先が更新されても、サーバーには確認済みの版だけを指定する。
+  return request(path, spec);
+}
+
 const fieldsByKind = {
   sqlserver: ["host", "port", "database", "username", "password", "ssl_mode"],
   oracle: [
@@ -1331,7 +1388,10 @@ async function init() {
     previewResult(await api("/api/preview", runSpec())),
   );
   action("#start", /* 検証済み設定で生成を開始し、返された実行IDを保持して表示を更新する。 */ async () => {
-    const run = await api("/api/runs", runSpec());
+    const run = state.info.kind === "sql"
+      ? await sqlDatabaseAction("/api/runs")
+      : await api("/api/runs", runSpec());
+    if (run === null) return;
     state.current = run.id;
     notify("生成を開始しました。実行ID: " + run.id);
     await refreshHistory();
@@ -1341,9 +1401,10 @@ async function init() {
     ["#showDdl", "ddl"],
     ["#prepareTable", "prepare"],
   ])
-    action(id, /* 各SQL操作に対応するAPIへ実行設定を渡す。検査・DDL表示・表準備は選ばれた操作に従う。 */ async () =>
-      previewResult(await api("/api/table/" + path, runSpec())),
-    );
+    action(id, /* 選択したSQL操作の結果だけを表示し、表作成の取消時は要求しない。 */ async () => {
+      const result = await sqlDatabaseAction("/api/table/" + path);
+      if (result !== null) previewResult(result);
+    });
   action("#newConnection", /* 現在時刻から仮IDを作り、許可種別の先頭で新規接続の編集画面を開く。保存前に通信はしない。 */ () =>
     editConnection({
       id: "connection-" + Date.now().toString(36),
