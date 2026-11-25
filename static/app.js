@@ -509,22 +509,24 @@ function renderAnomalies(parent) {
   parent.append(add);
 }
 // ブラウザーの入力制約を検査し、不正欄の折りたたみを開いて理由を表示し処理を中断する。
-function validateForm(selector) {
+function validateForm(selector, showError = true) {
   const form = $(selector);
   for (const input of form.querySelectorAll("input,textarea,select")) {
     if (!input.checkValidity()) {
-      for (let details = input.closest("details"); details;
-        details = details.parentElement.closest("details")) {
-        details.open = true;
+      if (showError) {
+        for (let details = input.closest("details"); details;
+          details = details.parentElement.closest("details")) {
+          details.open = true;
+        }
+        input.reportValidity();
       }
-      input.reportValidity();
       throw new Error("入力内容を確認してください。");
     }
   }
 }
 // フォームを検証した後に現在の実行設定を複製して返す。送信側の加工は編集中モデルから分離する。
-function runSpec() {
-  validateForm("#runForm");
+function runSpec(showError = true) {
+  validateForm("#runForm", showError);
   return clone(state.spec);
 }
 
@@ -1009,8 +1011,11 @@ async function refreshConnections() {
 // 今選ばれたプリセットの説明を反映し、なければ編集方法の案内を表示する。
 function updatePresetDetails() {
   const item = state.presets.find(/* 選択欄の値と一致するプリセットを、表示名ではなくIDで探す。 */ (p) => p.id === $("#presetSelect").value);
-  $("#presetDetails").textContent =
-    item?.spec.description || "各設定は読み込み後に自由に変更できます。";
+  const parts = (item?.spec.description || "").trim().split(/\r?\n\s*\r?\n/);
+  const scenario = parts.shift()?.replace(/^【想定(?:する状況)?】\s*/, "").trim();
+  $("#presetScenario").textContent = scenario || "このひな型には状況の説明がありません。";
+  $("#presetDetails").textContent = parts.join("\n\n");
+  $("#presetDetailsPanel").hidden = parts.length === 0;
 }
 // 最新のプリセット一覧を取得し、存在する限り以前の選択を保つ。
 async function refreshPresets() {
@@ -1032,8 +1037,7 @@ function showJson() {
   $("#presetJson").value = JSON.stringify(v, null, 2);
 }
 // 入力欄のJSONを解析し、プレビューAPIが検証した設定を返す。構文・検証失敗は呼出側へ伝える。
-async function parsePreset() {
-  const parsed = JSON.parse($("#presetJson").value);
+async function parsePreset(parsed = JSON.parse($("#presetJson").value)) {
   return (await api("/api/preview", parsed)).validated_spec;
 }
 // 値を整形JSONとしてブラウザーからダウンロードし、不要になったオブジェクトURLを解放する。
@@ -1296,6 +1300,21 @@ async function init() {
   $("#health").textContent = "ONLINE · " + state.info.kind.toUpperCase();
   await Promise.all([refreshConnections(), refreshPresets()]);
   editConnection(state.connections[0]);
+  window.FactoryComparison.mount({
+    app: "mes-erp-simulator",
+    listPresets: () => state.presets,
+    currentSpec: () => runSpec(false),
+    preview: (candidate) => api("/api/preview", candidate),
+    metrics: (spec, data) => ({
+      "SQLの操作": spec.sql.operation.toUpperCase(),
+      "生成する行数": spec.rows,
+      "バッチ件数": spec.batch_size,
+      "見本の実効バッチ上限": data.effective_batch_limit ?? null,
+      "主キーとして指定した列数": spec.fields.filter((field) => field.primary_key).length,
+      "乱数シード": spec.seed,
+      "目標件数（件／秒）": spec.target_rate,
+    }),
+  });
   $("#sqlActions").hidden = state.info.kind !== "sql";
   $("#outboxPanel").hidden = state.info.kind !== "stream";
   $("#destinationAdvice").textContent =
@@ -1329,7 +1348,11 @@ async function init() {
   });
   action("#toPreset", /* 現在のフォームからプリセット用JSONを用意し、プリセット画面を開く。 */ () => {
     showJson();
+    $("#presetId").value = "";
+    $("#presetDisplayName").value = "";
+    $("#presetPurpose").value = "";
     tab("presets");
+    $("#presetId").focus();
   });
   action("#refreshJson", /* 表示中のJSONを現在のフォームの検証済み設定で更新する。 */ () => {
     showJson();
@@ -1347,12 +1370,19 @@ async function init() {
       throw new Error(
         "プリセットIDを英数字・下線・ハイフンで指定してください。",
       );
-    const spec = await parsePreset();
+    const draft = JSON.parse($("#presetJson").value);
+    const displayName = $("#presetDisplayName").value.trim();
+    const purpose = $("#presetPurpose").value.trim();
+    if (displayName) draft.name = displayName;
+    if (purpose) draft.description = purpose;
+    const spec = await parsePreset(draft);
     await api("/api/presets/" + id, spec);
+    $("#presetJson").value = JSON.stringify(spec, null, 2);
     state.spec = spec;
     renderRun();
     await refreshPresets();
     $("#presetSelect").value = id;
+    updatePresetDetails();
     notify("プリセット " + id + " を保存しました。");
   });
   action("#exportPreset", /* JSONを検証してからダウンロードし、空の名前には既定値を使う。 */ async () =>
