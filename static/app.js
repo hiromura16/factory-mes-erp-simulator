@@ -509,22 +509,24 @@ function renderAnomalies(parent) {
   parent.append(add);
 }
 // ブラウザーの入力制約を検査し、不正欄の折りたたみを開いて理由を表示し処理を中断する。
-function validateForm(selector) {
+function validateForm(selector, showError = true) {
   const form = $(selector);
   for (const input of form.querySelectorAll("input,textarea,select")) {
     if (!input.checkValidity()) {
-      for (let details = input.closest("details"); details;
-        details = details.parentElement.closest("details")) {
-        details.open = true;
+      if (showError) {
+        for (let details = input.closest("details"); details;
+          details = details.parentElement.closest("details")) {
+          details.open = true;
+        }
+        input.reportValidity();
       }
-      input.reportValidity();
       throw new Error("入力内容を確認してください。");
     }
   }
 }
 // フォームを検証した後に現在の実行設定を複製して返す。送信側の加工は編集中モデルから分離する。
-function runSpec() {
-  validateForm("#runForm");
+function runSpec(showError = true) {
+  validateForm("#runForm", showError);
   return clone(state.spec);
 }
 
@@ -1298,6 +1300,21 @@ async function init() {
   $("#health").textContent = "ONLINE · " + state.info.kind.toUpperCase();
   await Promise.all([refreshConnections(), refreshPresets()]);
   editConnection(state.connections[0]);
+  window.FactoryComparison.mount({
+    app: "mes-erp-simulator",
+    listPresets: () => state.presets,
+    currentSpec: () => runSpec(false),
+    preview: (candidate) => api("/api/preview", candidate),
+    metrics: (spec, data) => ({
+      "SQLの操作": spec.sql.operation.toUpperCase(),
+      "生成する行数": spec.rows,
+      "バッチ件数": spec.batch_size,
+      "見本の実効バッチ上限": data.effective_batch_limit ?? null,
+      "主キーとして指定した列数": spec.fields.filter((field) => field.primary_key).length,
+      "乱数シード": spec.seed,
+      "目標件数（件／秒）": spec.target_rate,
+    }),
+  });
   $("#sqlActions").hidden = state.info.kind !== "sql";
   $("#outboxPanel").hidden = state.info.kind !== "stream";
   $("#destinationAdvice").textContent =
