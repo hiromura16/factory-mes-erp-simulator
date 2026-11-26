@@ -37,7 +37,7 @@ ssh -N -L 3560:127.0.0.1:3560 user@vm-address
 docker compose -p factory-mes-erp-simulator config --quiet
 docker compose -p factory-mes-erp-simulator up -d --build
 docker compose -p factory-mes-erp-simulator ps
-curl -fsS http://127.0.0.1:3560/healthz
+curl -fsS --retry 12 --retry-connrefused --retry-delay 1 --max-time 5 http://127.0.0.1:3560/healthz
 curl -fsS http://127.0.0.1:3560/api/runs
 ```
 
@@ -55,6 +55,8 @@ export LAKEHOUSE_NETWORK=lakehouse-input
 docker compose -p factory-mes-erp-simulator -f compose.yaml -f compose.lakehouse-network.yaml config --quiet
 docker compose -p factory-mes-erp-simulator -f compose.yaml -f compose.lakehouse-network.yaml up -d --build
 ```
+
+管理画面と操作APIにはログインがありません。ホスト側で `127.0.0.1` にバインドしても、共有ネットワークの参加コンテナは管理画面と操作APIに到達できます。信頼済みの収集・試験サービス専用のネットワークを使います。
 
 既定のプロジェクト内ネットワークも残ります。共有ネットワーク上では専用の別名 `factory-sql-data-loader` とコンテナ側のポートを使います。別ComposeのSQLサーバーに書く場合、UIの「接続先」には共有ネットワーク上のSQLサービス名とコンテナ側ポートを設定します。SQLiteを使う場合は外部ネットワークは不要です。
 
