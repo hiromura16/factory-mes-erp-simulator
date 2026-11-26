@@ -1,6 +1,6 @@
 # 汎用SQLデータ投入ツール
 
-[プリセット一覧](presets/README.md) · [Dokploy配備手順](docs/dokploy-deploy.md) · [コード読解ガイド](CODE_GUIDE.ja.md)
+[プリセット一覧](presets/README.md) · [アプリ別マニュアル](docs/user-manual.md) · [VMへのDocker Compose導入手順](docs/vm-compose.md) · [コード読解ガイド](CODE_GUIDE.ja.md)
 
 SQL Server / Oracle / PostgreSQL / MySQL / MariaDB / SQLiteへ任意スキーマの疑似データを投入します。
 
@@ -65,14 +65,14 @@ Oracle Thinが既定。Thick外部認証を使う場合はOracle Instant Client�
 
 ## ローカル起動
 
-Dokployで設定・配置から疎通テストまで進める場合は、[Dokploy導入・検証手順](docs/dokploy-deploy.md)を参照してください。
+VMで設定・起動から疎通確認まで進める場合は、[VMへのDocker Compose導入手順](docs/vm-compose.md)を参照してください。
 
 Python 3.12とuv、Docker Composeを使用します。
 
 ```sh
 uv sync --frozen
 uv run python scripts/init_local.py --private-dir ./private --data-dir ./data --env-file .env
-docker compose up -d --build
+docker compose -p factory-mes-erp-simulator up -d --build
 ```
 
 `.env`でポートと必要なマウント元を設定します。管理画面・操作API・メトリクスはログイン不要です。`uv run uvicorn app:app`で直接起動する場合はDATA_DIRを設定してください。
