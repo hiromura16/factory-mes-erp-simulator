@@ -56,9 +56,29 @@ docker compose -p factory-mes-erp-simulator -f compose.yaml -f compose.lakehouse
 docker compose -p factory-mes-erp-simulator -f compose.yaml -f compose.lakehouse-network.yaml up -d --build
 ```
 
-管理画面と操作APIにはログインがありません。ホスト側で `127.0.0.1` にバインドしても、共有ネットワークの参加コンテナは管理画面と操作APIに到達できます。信頼済みの収集・試験サービス専用のネットワークを使います。
+管理画面と操作APIは既定では認証を要求しません。認証付きで使う手順は[管理画面の認証](#管理画面の認証)にあります。ホスト側で `127.0.0.1` にバインドしても、共有ネットワークの参加コンテナは管理画面と操作APIに到達できます。信頼済みの収集・試験サービス専用のネットワークを使います。
 
 既定のプロジェクト内ネットワークも残ります。共有ネットワーク上では専用の別名 `factory-sql-data-loader` とコンテナ側のポートを使います。別ComposeのSQLサーバーに書く場合、UIの「接続先」には共有ネットワーク上のSQLサービス名とコンテナ側ポートを設定します。SQLiteを使う場合は外部ネットワークは不要です。
+
+## 管理画面の認証
+
+管理HTTPをホスト外から使う場合は、TLSを終端するリバースプロキシのSSO・認証機能、またはアプリのBasic認証を設定します。Basic認証を別の端末から使う場合は、HTTPSかSSHトンネルで接続します。
+
+1. 管理パスワードを1行で保存したファイルを用意します。コンテナUID 1000で読み取れるように所有者と権限を設定します。
+2. VMの `.env` に `ADMIN_USERNAME` と、パスワードファイルの絶対パスを `ADMIN_PASSWORD_FILE` に設定します。
+3. 通常設定に認証用Composeを加えて起動します。
+
+```sh
+docker compose -p factory-mes-erp-simulator -f compose.yaml -f compose.admin-auth.yaml up -d --build
+```
+
+共有ネットワークやNFSを使用する場合は、そのオーバーライドも同じコマンドに加えます。管理画面・ヘルプ・操作API・接続ファイルのアップロードは同じ認証で保護されます。`/healthz` は稼働確認用です。公開データ取得APIを持つアプリの取得用認証は、公開プロファイルで設定します。
+
+## リソースの設定
+
+`APP_MEMORY` はコンテナが使用するメモリの上限（既定512MiB）です。`MIN_AVAILABLE_GIB` はホストに確保する空きメモリ量（新規既定1GiB）で、しきい値を下回ると生成を停止します。以前の `.env` に `MIN_AVAILABLE_GIB=6` を記載している場合は、その値が優先されます。
+
+`TZ` でコンテナの設置先のタイムゾーンを指定できます（既定Asia/Tokyo）。合成した日時は入力のタイムゾーンを解釈しUTCに変換します。
 
 ## 停止・更新
 
@@ -69,6 +89,6 @@ docker compose -p factory-mes-erp-simulator stop
 docker compose -p factory-mes-erp-simulator up -d --build
 ```
 
-共有ネットワークを使う場合は更新にも同じ `-f` と環境変数を使います。設定DB、暗号鍵、永続データをバックアップし、ボリューム `app-data` とホストマウントを引き継ぎます。更新後も停止状態または実行履歴を確認します。
+共有ネットワーク、NFS、管理Basic認証を設定した場合は、更新時も起動時と同じ `-f` と環境変数を指定します。設定DB、暗号鍵、永続データをバックアップし、ボリューム `app-data` とホストマウントを引き継ぎます。更新後も停止状態または実行履歴を確認します。
 
 HTTP(S)プロキシが必要なビルドでは `.env.example` の大文字・小文字の対を同じ値に設定します。実行時の通信はネットワーク、DNS、ポート、認証を個別に確認します。

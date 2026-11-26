@@ -1,4 +1,3 @@
-# モジュール読解: 一時SQLiteと方言の型表現で表作成・更新・削除・失敗時ロールバックを回帰検証する。
 from pathlib import Path
 import json
 import os
@@ -12,7 +11,6 @@ from generation import GenerationError
 from conftest import Context
 
 
-# 読解 test_sqlite_custom_schema_crud_and_decimal_json_roundtrip: 一時SQLite上で表準備とCRUDを実行し、小数・日本語・JSON、主キー不一致の拒否を確認する。
 def test_sqlite_custom_schema_crud_and_decimal_json_roundtrip():
     profile = ConnectionProfile(
         id="local",
@@ -76,7 +74,6 @@ def test_sqlite_custom_schema_crud_and_decimal_json_roundtrip():
     assert len(db.inspect_table(profile, spec)["columns"]) == 5
 
 
-# 読解 test_path_is_constrained: SQLiteの保管先が許可ルートの外へ抜けられないことを確認する。
 def test_path_is_constrained():
     p = ConnectionProfile(
         id="bad", name="bad", kind="sqlite", sqlite_path="../outside.db"
@@ -85,7 +82,6 @@ def test_path_is_constrained():
         db.engine_for(p)
 
 
-# 読解 test_external_database_driver_contracts: 明示した試験用プロファイルがある場合に、外部DBごとの疎通と試験表の書込み・照会・削除結果を検証する。
 @pytest.mark.skipif(
     not os.environ.get("SQL_TEST_PROFILES_FILE"),
     reason="External driver fixtures opt-in",
@@ -129,7 +125,6 @@ def test_external_database_driver_contracts():
                 engine.dispose()
 
 
-# 読解 test_existing_sql_datetime_and_native_json_keep_expected_types: 既存列の日時表現とネイティブJSON型に応じた行変換を確認する。
 def test_existing_sql_datetime_and_native_json_keep_expected_types():
     from sqlalchemy.dialects import mssql, postgresql
     from generation import generate_record
@@ -167,7 +162,6 @@ def test_existing_sql_datetime_and_native_json_keep_expected_types():
     }
 
 
-# 読解 test_injected_failure_before_commit_rolls_back_whole_batch: 書込み後・コミット前に障害を発生させ、失敗状態と試験表に行が残らないことを確かめる。
 def test_injected_failure_before_commit_rolls_back_whole_batch():
     from config import FaultOptions
     from factorylib import Runtime
@@ -182,7 +176,6 @@ def test_injected_failure_before_commit_rolls_back_whole_batch():
         faults=FaultOptions(enabled=True, stage="after_write", action="fail"),
     )
     db.prepare_table(profile, spec)
-    # コールバック: テスト専用プロファイルを閉じ込め、Runtimeが渡すspec/contextを実アダプターへ中継する。
     runtime = Runtime("sql", lambda s, c: db.handle(s, c, profile, None), 100000000)
     job = runtime.start(spec)
     runtime.thread.join(timeout=5)

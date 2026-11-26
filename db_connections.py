@@ -1,4 +1,3 @@
-# モジュール読解: 接続プロファイルをDB方言固有のドライバー設定へ変換する。ここでは表の変更を行わない。
 """Database-specific authentication/transport registry. Secrets never enter engine URLs."""
 
 from __future__ import annotations
@@ -73,19 +72,19 @@ OPTIONS = {
 }
 
 
-# 読解 secret: ドライバーへ渡すため指定フィールドの秘密値を取り出す。未設定は空文字で表す。
 def secret(p, name):
+    """接続用に秘密値を取り出す。未設定なら空文字を返す。"""
     value = getattr(p, name)
     return value.get_secret_value() if value else ""
 
 
-# 読解 odbc_value: ODBCの値を波括弧で囲み、閉じ括弧を二重化して設定項目の区切りと混同させない。
 def odbc_value(value):
+    """ODBC接続文字列に値を埋め込めるよう、閉じ波括弧をエスケープする。"""
     return "{" + str(value).replace("}", "}}") + "}"
 
 
-# 読解 odbc_parameters: 認証と接続方式に応じたODBC文字列・接続引数を作る。アクセストークンはパスワード欄でなく専用属性へ渡す。
 def odbc_parameters(p):
+    """認証方式別の接続引数を作る。アクセストークンは専用属性へ渡す。"""
     if p.connection_method == "raw":
         if not p.connection_string:
             raise GenerationError("暗号化保存する接続文字列を指定してください")
@@ -134,8 +133,8 @@ def odbc_parameters(p):
     return text, kwargs
 
 
-# 読解 engine_for: DBごとの許可ドライバーと追加設定を検証し、接続プールを再利用しないSQLAlchemyエンジンを作る。Oracle Thick初期化はプロセス全体に影響する。
 def engine_for(p, sqlite_path):
+    """プールを使わないエンジンを返す。Oracle Thickの初期化はプロセス全体に及ぶ。"""
     if p.driver not in DRIVERS[p.kind]:
         raise GenerationError("選択したDBに対応するドライバーを選んでください")
     if set(p.driver_options) - OPTIONS.get(p.kind, set()):
@@ -171,8 +170,8 @@ def engine_for(p, sqlite_path):
                     "指定したODBCドライバーが未導入です。SQL用DockerイメージにはMicrosoft ODBC Driver 18を同梱しています"
                 )
 
-            # 読解 engine_for.connect: SQLAlchemyから要求された時にODBC接続を作り、作成後のクエリタイムアウトも設定する。
             def connect():
+                """接続を要求された時点で開き、クエリのタイムアウトを設定する。"""
                 c = pyodbc.connect(text, **kwargs)
                 c.timeout = p.timeout_seconds
                 return c
@@ -208,7 +207,7 @@ def engine_for(p, sqlite_path):
             **p.driver_options,
         }
         return sa.create_engine(
-            # コールバック: SQLAlchemyが接続を必要とした時だけ、構築済み引数でSQL Server接続を作る。
+            # 認証値はURLに入れず、接続を開くときにドライバーへ渡す。
             "mssql+pymssql://", creator=lambda: pymssql.connect(**args), **common
         )
     if p.kind == "oracle":
@@ -268,7 +267,6 @@ def engine_for(p, sqlite_path):
         if p.tls_ca_file:
             args["ssl_context"] = tls_context(p)
         return sa.create_engine(
-            # コールバック: SQLAlchemyの接続要求時に構築済み引数でOracle接続を作る。
             "oracle+oracledb://", creator=lambda: oracledb.connect(**args), **common
         )
     if p.kind == "postgresql":
@@ -330,7 +328,6 @@ def engine_for(p, sqlite_path):
             )
         return sa.create_engine(
             "postgresql+psycopg://",
-            # コールバック: SQLAlchemyの接続要求時に検査済みconninfoと引数でPostgreSQLへ接続する。
             creator=lambda: psycopg.connect(conninfo, **args),
             **common,
         )
@@ -376,6 +373,5 @@ def engine_for(p, sqlite_path):
     ):
         raise GenerationError("証明書認証にはTLSとクライアント証明書・秘密鍵が必要です")
     return sa.create_engine(
-        # コールバック: SQLAlchemyの接続要求時に構築済み引数でMySQL互換接続を作る。
         "mysql+pymysql://", creator=lambda: pymysql.connect(**args), **common
     )

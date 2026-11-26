@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ひな型を選ぶ・作る | 汎用SQL データ投入</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/help.css">
+  <script src="/static/help.js" defer></script>
+</head>
+<body class="help-page">
+  <a class="help-skip" href="#help-content">本文へ移動</a>
+  <div class="help-top">
+    <a class="help-home" href="/">汎用SQL データ投入</a>
+    <a href="/">アプリに戻る</a>
+  </div>
+  <div class="help-layout">
+    <nav class="help-nav" aria-label="ヘルプ"><a href="/help/index.html">初めて使う</a><a href="/help/presets.html" aria-current="page">ひな型を選ぶ・作る</a><a href="/help/templates.html">JSONの書き方</a><a href="/help/settings.html">設定リファレンス</a><a href="/help/api.html">APIの使い方</a><a href="/help/glossary.html">用語集</a><a href="/help/ai.html">AIにひな型を頼む</a><a href="/help/install.html">VMへの導入</a><a href="/help/catalog.html">付属のひな型一覧</a></nav>
+    <main class="help-content" id="help-content">
+      <nav class="help-outline" aria-label="このページ"><a href="#選び方">選び方</a><a href="#読み込み-見本-保存-実行">読み込み・見本・保存・実行</a><a href="#読み込みから見本まで">読み込みから見本まで</a><a href="#詳細設定を変更して見本を見る">詳細設定を変更して見本を見る</a><a href="#自分のひな型を作って保存する">自分のひな型を作って保存する</a><a href="#複数のひな型を比較する">複数のひな型を比較する</a><a href="#項目から探す">項目から探す</a></nav>
+      <article><h1>SQLデータ投入のひな型と詳細設定</h1>
+<p>ひな型（プリセット）は、生成するデータの項目・件数・書式や、再現したい異常をまとめた設定です。試したい状況に近いひな型を読み込み、見本を確認してから必要な設定を変えます。公開、書き込み、送信を始めるときは、画面の実行ボタンを使います。</p>
+<h2 id="選び方">選び方</h2>
+<p>最初に正常な少量のひな型を試します。その後は設定を一つずつ変更すると結果を比較できます。</p>
+<table>
+<thead>
+<tr>
+<th>確認したいこと</th>
+<th>選ぶひな型</th>
+<th>最初に見る結果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>初回の列・主キー・INSERTの確認</td>
+<td>小さく試す（<code>01-quickstart</code>）</td>
+<td>3件に減らしてSQLiteで見本、テーブル作成、追加を順に確認します。</td>
+</tr>
+<tr>
+<td>同じ値を繰り返す取り込み試験</td>
+<td>固定値 / 基準データ（<code>05-constant-baseline</code>）</td>
+<td>固定の列と一意にする主キーを見本で区別します。</td>
+</tr>
+<tr>
+<td>複数列の組み合わせで行を識別するテーブル</td>
+<td>複合主キー / グループと番号（<code>18-composite-key</code>）</td>
+<td>見本のキー列を接続先の複合主キーと照合します。</td>
+</tr>
+</tbody>
+</table>
+<p><a href="/help/catalog.html">付属のひな型一覧</a>のブラウザー版では、名前・ID・用途で検索できます。</p>
+<h2 id="読み込み-見本-保存-実行">読み込み・見本・保存・実行</h2>
+<ul>
+<li>読み込むと編集欄を置き換えます。編集中の内容を残すには別のIDで保存します。</li>
+<li>見本で確認できるのは一部の値と形です。実行すると対象へ出力・公開します。</li>
+<li>保存したひな型は次回から選べます。接続先や認証は使用する環境で選びます。</li>
+</ul>
+<h2 id="読み込みから見本まで">読み込みから見本まで</h2>
+<p><strong>小さく試す（01-quickstart）</strong> を例にします。</p>
+<p>MES／ERPからCDCや取り込み処理へ渡す前に、DBに書く列、主キー、型を確認する場面です。少量から始めると対象テーブルと書き込み方法を追いやすくなります。</p>
+<p>「小さく試す」を選び、「ひな型を読み込む」を押します。基本設定で件数を3にし、検証用SQLiteと専用テーブルを選びます。</p>
+<p><a href="/help/images/preset-scenario.png"><img src="/help/images/preset-scenario.png" alt="ひな型を選ぶ場所と、読込前に確認する想定状況を示す画面" loading="lazy" /></a></p>
+<p>「どんな状況のひな型か」で用途を確認し、「生成内容・確認すること・実行前の条件」で作るデータや準備を読みます。</p>
+<p>「10万件 / 負荷計測（02-volume-100k）」は容量と性能の比較向けです。数件の試験に通った専用テーブルを使って測定します。</p>
+<p>全ひな型の用途は<a href="/help/catalog.html">プリセット一覧</a>を参照してください。</p>
+<h2 id="詳細設定を変更して見本を見る">詳細設定を変更して見本を見る</h2>
+<p>「詳細設定 → 実行条件・再現性」で「乱数シード」を42にします。「データ項目・生成ルール」で列の型や値の作り方を確認します。</p>
+<p><a href="/help/images/advanced-settings.png"><img src="/help/images/advanced-settings.png" alt="詳細設定を開き、変更する項目とその意味を示す画面" loading="lazy" /></a></p>
+<table>
+<thead>
+<tr>
+<th>設定</th>
+<th>変えられること</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>乱数シード</td>
+<td>同じ合成値を再現するときに揃える値です。</td>
+</tr>
+<tr>
+<td>バッチ件数</td>
+<td>書き込みをまとめる行数です。</td>
+</tr>
+<tr>
+<td>データ項目・生成ルール</td>
+<td>列名、型、主キーと、連番・固定値・分布などの生成条件を決めます。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>見本での確認</strong>　「データの見本を見る」で id や連番などの列と値を確認します。書き込みは、検証用テーブルの列と主キーが揃っていることを確認してから実行します。</p>
+<h2 id="自分のひな型を作って保存する">自分のひな型を作って保存する</h2>
+<p><a href="/help/images/preset-save.png"><img src="/help/images/preset-save.png" alt="ひな型ID、表示名と用途、保存ボタンの場所" loading="lazy" /></a></p>
+<ol>
+<li>上の例で編集した設定を残すには、「この設定を保存…」を押します。今の設定がJSON欄に入った保存画面が開きます。</li>
+<li>「プリセットID」に <code>guide-sql-three-rows</code> のような新しいIDを入力します。半角英数字、ハイフン、下線が使えます。同じIDで保存すると、そのひな型を更新します。</li>
+<li>必要に応じて表示名と想定する状況を入力し、「ひな型として保存」を押します。画面で編集した設定は、JSON欄を書き直さず保存できます。</li>
+<li>生成画面の「ひな型（プリセット）」に戻り、新しく保存したIDを選んで「ひな型を読み込む」を押します。見本を出し、変更した条件が戻っていることを確認します。</li>
+</ol>
+<p>たとえば別のテーブル向けにひな型を作るときは、「詳細設定 → データ項目・生成ルール」で入力先の列名、型、主キーを揃えます。設備コードなら <code>equipment_code</code> のような名前を付け、文字列の固定値を設定します。件数を <code>3</code> にして見本で列名と値を確認し、対象テーブルと用途が分かる名前で保存します。</p>
+<p>共有するひな型には「SQLの書き込み前に3件を確認」のような表示名と、「検証用SQLiteで列型と主キーを確認する。」のような用途を書いておくと、次の人が選びやすくなります。接続先と認証は「接続先」で管理します。ひな型を別環境で使う場合は「JSONを書き出す」で持ち出し、利用先で接続設定を選び直します。</p>
+<h2 id="複数のひな型を比較する">複数のひな型を比較する</h2>
+<p>メニューの「見本を比較」を開きます。SQLの操作種別、行数、主キー、バッチ件数、乱数シードを比べます。</p>
+<ol>
+<li>「名前・ID・用途」にキーワードを入力します。よく使うひな型は「お気に入り」を押すと、このブラウザーの「お気に入りのみ」で絞り込めます。「編集画面で選ぶ」を押すと、編集画面でそのひな型が選ばれます。「ひな型を読み込む」を押すと編集欄へ反映されます。</li>
+<li>比べたいひな型を最大3件選びます。画面で編集した設定も比べる場合は「編集中の設定を含める」をオンにします。検索条件を変えても選択は維持され、下の「比較する条件」に選んだIDが残ります。</li>
+<li>「見本を比較」を押します。複数の候補を順番にプレビューします。「残りを中止」を押すと、処理中のプレビューが終わった時点で残りを止めます。「要確認」の候補は編集画面で設定を見直し、通常のプレビューで詳細を確認します。</li>
+<li>比較結果は「差がある項目だけ」で絞り込めます。「CSVを保存」または「JSONを保存」で、ひな型ID・確認状況・比較項目の値を記録できます。接続情報や生成した本文は比較ファイルに含まれません。対象の設定を変えたら比較をやり直します。</li>
+</ol>
+<p><a href="/help/images/comparison.png"><img src="/help/images/comparison.png" alt="ひな型の比較結果と差分表示、ダウンロードを示す画面" loading="lazy" /></a></p>
+<h2 id="項目から探す">項目から探す</h2>
+<p><a href="/help/settings.html">設定リファレンス</a>で、画面の設定名・JSONキー・既定値・許容範囲を確認できます。</p>
+<p><a href="/help/templates.html">JSONの書き方</a>には最小構成の例と生成器の使い分けがあります。AIへの作成依頼には<a href="/help/ai.html">テンプレート作成ハーネス</a>を使えます。</p>
+<p><a href="/help/index.html">初めて使う</a></p>
+</article>
+    </main>
+  </div>
+</body>
+</html>
