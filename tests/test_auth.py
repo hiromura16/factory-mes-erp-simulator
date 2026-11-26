@@ -1,4 +1,3 @@
-# モジュール読解: DB認証引数の組み立てと、接続ファイルの非公開性を合成入力で確認する。
 import base64
 import struct
 
@@ -13,7 +12,6 @@ from factorylib import create_app
 from generation import GenerationError
 
 
-# 読解 test_windows_and_kerberos_are_different_authentication_paths: 明示Windows資格情報とKerberos統合認証が別経路として扱われ、ODBC値の区切りが保持されることを確認する。
 def test_windows_and_kerberos_are_different_authentication_paths():
     p = ConnectionProfile(
         id="sql",
@@ -39,7 +37,6 @@ def test_windows_and_kerberos_are_different_authentication_paths():
     assert "UID={some;name}" in text and "safe}};Trusted_Connection=yes}" in text
 
 
-# 読解 test_sql_access_token_uses_attribute_not_password: SQL Server用アクセストークンを専用のバイナリ属性に渡し、通常の接続文字列に入れないことを確認する。
 def test_sql_access_token_uses_attribute_not_password():
     p = ConnectionProfile(
         id="sql",
@@ -58,7 +55,6 @@ def test_sql_access_token_uses_attribute_not_password():
     )
 
 
-# 読解 test_database_auth_transport_combinations_are_checked: 認証と接続方式の不適合がモデルまたはドライバー初期化で拒否されることを確かめる。
 def test_database_auth_transport_combinations_are_checked():
     with pytest.raises(ValidationError):
         ConnectionProfile(
@@ -85,13 +81,10 @@ def test_database_auth_transport_combinations_are_checked():
         engine_for(p, None)
 
 
-# 読解 test_connection_file_upload_is_bounded_private_and_not_readable: 接続ファイルを制限付きの非公開ファイルとして保存し、APIで内容を取得できないことを確認する。
 def test_connection_file_upload_is_bounded_private_and_not_readable(tmp_path):
     app = create_app(
         "sql",
         "Test",
-        # コールバック: 任意の呼出引数を受ける無処理スタブ。実アダプターを起動せず、APIや履歴の振舞いだけを試験する。
-        # コールバック: DBへの疎通を行わず空の結果を返すスタブ。補助ファイルAPIの試験を接続先から独立させる。
         SimpleNamespace(handle=lambda *a: None, test_connection=lambda *a: {}),
     )
     with TestClient(app) as c:

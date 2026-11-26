@@ -1,22 +1,38 @@
 # 汎用SQLデータ投入ツール
 
-[プリセット一覧](presets/README.md) · [Dokploy配備手順](docs/dokploy-deploy.md) · [コード読解ガイド](CODE_GUIDE.ja.md)
+検証用SQLiteにテーブルを作って3行追加する手順を[初心者マニュアル](docs/user-manual.md)で確認できます。
+
+## 起動して最初の画面を開く
+
+Linux VMに Docker Compose を用意します。別端末からの接続やホスト側のマウントは[VM導入手順](docs/vm-compose.md)を参照してください。
+
+```sh
+python3 scripts/init_local.py --private-dir ./private --data-dir ./data --env-file .env
+docker compose -p factory-mes-erp-simulator up -d --build
+```
+
+VMで `http://127.0.0.1:3560/` を開きます。メニューの「ヘルプ」から、見本の出し方、設定、APIを調べられます。 別端末から管理操作をする場合は[管理画面の認証](docs/vm-compose.md#管理画面の認証)も設定します。
+
+開発時に直接起動する場合は Python 3.12〜3.14 と uv を使用します。必要なPythonは uv でインストールできます。
+
+```sh
+uv sync --frozen
+DATA_DIR=./data uv run --frozen uvicorn app:app --host 127.0.0.1 --port 3560
+```
+
+## 操作と設定の資料
+
+[8アプリの構成](docs/architecture.md)から役割と既定ポートを調べられます。
+
+- [初心者マニュアル](docs/user-manual.md) · [ひな型を選ぶ・作る](docs/preset-guide.md) · [付属のひな型一覧](presets/README.md)
+- [設定リファレンス](docs/settings-reference.md) · [JSONの書き方](docs/template-guide.md) · [AI向け作成ハーネス](docs/AI_TEMPLATE_HARNESS.md)
+- [APIの使い方](docs/api-guide.md) · [用語集](docs/glossary.md) · [コードを拡張する](docs/code-reading-guide.md) · [変更履歴](CHANGELOG.md) · [レビュー対応表](docs/quality-review.md)
+AIクライアント向けの接続方法は[CLI・MCPの使い方](docs/mcp.md)を参照してください。
+
 
 SQL Server / Oracle / PostgreSQL / MySQL / MariaDB / SQLiteへ任意スキーマの疑似データを投入します。
 
-| DB | 認証・接続方式 |
-| --- | --- |
-| SQL Server | SQL Server認証、Windowsドメイン資格情報（NTLM）、Kerberos統合認証、Entraサービスプリンシパル / Managed Identity / 取得済みアクセストークン。ホスト、ODBC DSN、ODBC接続文字列 |
-| Oracle | DBユーザー、Wallet TLS、Thickの外部認証、OAuthトークン。サービス名 / SID、TNSエイリアス、接続記述子 |
-| PostgreSQL | パスワード、クライアント証明書、Kerberos/GSS、OS/libpq外部設定、取得済みトークン。ホスト、service、Unixソケット、libpq接続文字列 |
-| MySQL / MariaDB | パスワード、TLSクライアント証明書、OS/ソケットの外部認証。ホスト、Unixソケット、接続URI |
-| SQLite | アプリ内のDBファイル。追加サーバー・DB認証不要 |
-
-SQL ServerのSQL認証とWindows認証は明示的に選択します。WindowsパスワードはpymssqlへDOMAIN\usernameとして渡します。KerberosはMicrosoft ODBC Driver 18でTrusted_Connectionを指定し、有効なチケット・DNS・SPNを利用します。ブラウザー利用者のWindowsログイン情報を自動使用しません。SQL用DockerイメージにはMicrosoft ODBC Driver 18とKerberosライブラリを同梱します。
-
-Kerberos設定はconnection-filesのkrb5.conf / krb5cc、libpq serviceはpg_service.conf、ODBC DSNはodbc.iniへ配置できます。チケットやトークンの取得・更新とドメイン側の構成は外部で行います。Entraの対話式MFAフローは実装していません。
-
-Oracle Thinが既定。Thick外部認証を使う場合はOracle Instant Clientを事前配置し、ORACLE_CLIENT_MODE=thickと必要ならORACLE_CLIENT_LIB_DIRで起動します。Thin/Thickはプロセス全体の設定なので、切替にはアプリの再起動が必要です。Kerberos/GSSや各外部認証は接続先の設定も必要で、実際のドメイン環境での検証は別途行ってください。
+[DBごとの接続・認証方式](docs/connections.md)で、SQLite以外の接続やKerberos等を確認できます。
 
 `insert`・`upsert`・`update`・`delete` を選び、対象テーブルの列と主キーを確認します。未作成のテーブルを用意するには、画面から作成するか、管理者が表示されたDDLを適用します。既存テーブルに対して自動でDDLを実行することはありません。MySQL・MariaDB・SQLiteでは通常、スキーマ欄を空欄にします。テーブル名の例は `synthetic.sample_records` です。
 
@@ -26,7 +42,7 @@ Oracle Thinが既定。Thick外部認証を使う場合はOracle Instant Client�
 
 # Data Source Studio 共通仕様
 
-3つのツールはそれぞれ独立したリポジトリ・アプリ・永続ボリュームです。設定は業種に依存しません。v2では接続プロファイル、任意のデータ項目、生成ルール、実行条件を画面で編集できます。
+各アプリは独立したコンテナと永続ボリュームを持ちます。設定は業種に依存しません。v2では接続プロファイル、任意のデータ項目、生成ルール、実行条件を画面で編集できます。
 
 ## 操作ガイド
 
@@ -63,32 +79,18 @@ Oracle Thinが既定。Thick外部認証を使う場合はOracle Instant Client�
 
 実行は各ツール1件ずつ。全件をメモリには保持せず、行サイズに合わせてバッチを縮小します。ホストのメモリ余力・ディスク余力を監視し、閾値に達した場合は停止します。設定と履歴は永続化し、プロセス再起動で中断された実行はinterruptedになります。実行開始時に接続プロファイルの版を固定します。
 
-## ローカル起動
-
-Dokployで設定・配置から疎通テストまで進める場合は、[Dokploy導入・検証手順](docs/dokploy-deploy.md)を参照してください。
-
-Python 3.12とuv、Docker Composeを使用します。
-
-```sh
-uv sync --frozen
-uv run python scripts/init_local.py --private-dir ./private --data-dir ./data --env-file .env
-docker compose up -d --build
-```
-
-`.env`でポートと必要なマウント元を設定します。管理画面・操作API・メトリクスはログイン不要です。`uv run uvicorn app:app`で直接起動する場合はDATA_DIRを設定してください。
-
-`DATA_DIR=/data`に設定DB、暗号鍵、実行履歴を保存。接続用ファイルの配置先はCONNECTION_FILES_DIR（既定DATA_DIR/connection-files）です。秘密鍵と設定DBを一緒に公開しないでください。
-
 ## APIと検証
 
-ログイン不要のAPI: `/api/info`、`/api/schemas`、`/api/connections`、`/api/presets`、`/api/preview`、`/api/runs`。プロファイル保存後の`/api/connections/{id}/test`は保存済み設定を検証します。`/healthz`と`/metrics`も認証不要です。UIとAPIの変更操作は同一オリジンとJSONを要求します。
+契約スキーマを更新するには `uv run --frozen python scripts/export_contracts.py` を実行します。`--check` を付けると、配布ファイルを変更せずに現在の定義と照合します。
+
+管理APIの例: `/api/info`、`/api/schemas`、`/api/connections`、`/api/presets`、`/api/preview`、`/api/runs`。プロファイル保存後の`/api/connections/{id}/test`は保存済み設定を検証します。`/healthz` は稼働確認、`/metrics` は管理用のメトリクスです。UIとAPIの変更操作は同一オリジンとJSONを要求します。
 
 ```sh
 uv run pytest -q
-uvx ruff check .
+uvx ruff@0.17.6 check --select E4,E7,E9,F .
 ```
 
-v0.1の固定MES/ERP設定JSONはv2の任意項目定義へ置き換えました。過去の実行履歴・SQLテーブル・出力ファイル・旧outboxは保持します。旧outboxの未配送データは新しい接続先へ自動転送しません。
+過去の実行履歴・SQLテーブル・出力ファイル・旧outboxは保持します。旧outboxの未配送データは新しい接続先へ自動転送しません。
 
 プリセットの再生成は `uv run python scripts/build_presets.py --kind sql`。新規プリセットだけを初回起動時に登録し、保存済みプリセットを更新で上書きしません。
 
@@ -107,3 +109,7 @@ v0.1の固定MES/ERP設定JSONはv2の任意項目定義へ置き換えました
 Composeの管理ラベルは既定で `factory.guard.managed=true` です。外部監視側との合意が必要な場合は、非公開の配備設定で `FACTORY_GUARD_LABEL_PREFIX` を指定できます。例えば説明用の値 `synthetic-guard` を指定すると、`synthetic-guard.guard.managed=true` になります。
 
 既存の外部監視との互換性は未確認です。変更前に監視側が照合するラベル名と影響を確認してください。この設定は既存コンテナや監視設定を自動移行せず、デプロイも行いません。
+
+## ライセンス
+
+アプリ本体は[MITライセンス](LICENSE)です。同梱フォントとSwagger UIのライセンスは各配布ディレクトリにあります。

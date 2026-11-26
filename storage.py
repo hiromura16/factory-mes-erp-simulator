@@ -1,4 +1,3 @@
-# モジュール読解: 接続設定は暗号化して版を保持し、プリセットはJSONとしてSQLiteへ保存する。
 # 公開用表現と内部の秘密値を分け、接続先を変えた際の秘密値継承を制限する。
 """Persistent encrypted connection profiles and credential-free JSON presets."""
 

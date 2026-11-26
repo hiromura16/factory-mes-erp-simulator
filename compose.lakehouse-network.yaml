@@ -1,0 +1,20 @@
+{
+  "services": {
+    "app": {
+      "networks": {
+        "default": {},
+        "lakehouse": {
+          "aliases": [
+            "factory-sql-data-loader"
+          ]
+        }
+      }
+    }
+  },
+  "networks": {
+    "lakehouse": {
+      "external": true,
+      "name": "${LAKEHOUSE_NETWORK:?Set LAKEHOUSE_NETWORK}"
+    }
+  }
+}

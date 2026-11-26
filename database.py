@@ -1,4 +1,3 @@
-# モジュール読解: 表の準備・列調査と、既存表に対する合成行のバッチ反映を別の操作として提供する。
 """SQLAlchemy Core adapters for SQL Server, Oracle, PostgreSQL, MySQL and SQLite."""
 
 from __future__ import annotations
@@ -251,7 +250,7 @@ def handle(spec, ctx, profile, store):
                 raise GenerationError(
                     "更新・取消・upsertには接続先と一致する主キー定義が必要です"
                 )
-            step = batch_limit(spec, spec.batch_size)
+            step = batch_limit(spec, spec.batch_size, kind="sql")
             for offset in range(0, spec.rows, step):
                 ctx.check()
                 inject_fault(spec, ctx, "before_batch", offset // step + 1)

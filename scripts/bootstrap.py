@@ -1,4 +1,3 @@
-# モジュール読解: 非公開のプロファイルJSONとプリセットを別々に読み、明示指定した表の作成だけを実施する。既存CLI説明と値を出さないエラー表示は維持する。
 """Prepare a generic table using an explicit private connection JSON and preset.
 
 Example: uv run python scripts/bootstrap.py --connection /private/profile.json --preset presets/01-quickstart.json

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>初めて使う | 汎用SQL データ投入</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/help.css">
+  <script src="/static/help.js" defer></script>
+</head>
+<body class="help-page">
+  <a class="help-skip" href="#help-content">本文へ移動</a>
+  <div class="help-top">
+    <a class="help-home" href="/">汎用SQL データ投入</a>
+    <a href="/">アプリに戻る</a>
+  </div>
+  <div class="help-layout">
+    <nav class="help-nav" aria-label="ヘルプ"><a href="/help/index.html" aria-current="page">初めて使う</a><a href="/help/presets.html">ひな型を選ぶ・作る</a><a href="/help/templates.html">JSONの書き方</a><a href="/help/settings.html">設定リファレンス</a><a href="/help/api.html">APIの使い方</a><a href="/help/glossary.html">用語集</a><a href="/help/ai.html">AIにひな型を頼む</a><a href="/help/mcp.html">CLI・MCP</a><a href="/help/install.html">VMへの導入</a><a href="/help/catalog.html">付属のひな型一覧</a></nav>
+    <main class="help-content" id="help-content">
+      <nav class="help-outline" aria-label="このページ"><a href="#最初に試すこと">最初に試すこと</a><a href="#よくある質問">よくある質問</a><a href="#停止と再起動">停止と再起動</a><a href="#想定した結果が出ないとき">想定した結果が出ないとき</a><a href="#sql日時と主キ-の扱い">SQL日時と主キーの扱い</a><a href="#次に読む">次に読む</a></nav>
+      <article><h1>汎用SQLデータ投入ツール 操作マニュアル</h1>
+<p>合成データをデータベースへ書き込み、列型・キー・CDCによる取り込みを検証します。入力先に合わせて列と値の生成ルールを指定でき、MES／ERPの例はひな型として使えます。</p>
+<h2 id="最初に試すこと">最初に試すこと</h2>
+<p><strong>検証用SQLiteにテーブルを作って3行追加する</strong>。実行履歴に完了と3件が表示され、<code>manual_sample</code> に3行が追加されます。</p>
+<p><a href="/help/install.html">Docker Compose導入手順</a>で準備し、VMで <code>http://127.0.0.1:3560/</code> を開きます。</p>
+<p>SQLiteは別のDBサーバーを用意せずに試せる、ファイルに保存するデータベースです。「接続先」の「ローカルSQLite」を選び、作業用テーブル名に <code>manual_sample</code> を使います。既存の試験と分ける場合は別名にします。</p>
+<ol>
+<li>「データをつくる」で「小さく試す」を読み込み、「書き込むデータベース」をローカルSQLiteにします。</li>
+<li>対象テーブル名を <code>manual_sample</code>、生成する件数を <code>3</code>、書き込み方法を「新しい行を追加（insert）」にします。</li>
+<li>「データの見本を見る」で列名と値を確認します。初回は「未作成のテーブルを作成」の確認画面で対象を照合して作成し、「接続先の列を確認」で列と主キーを見ます。</li>
+<li>「データベースへ書き込む」を押し、確認画面の操作と件数を読んで実行します。「実行履歴」で完了と追加件数を見ます。</li>
+</ol>
+<p><a href="/help/images/operation-guide.png"><img src="/help/images/operation-guide.png" alt="最初の操作と確認箇所" loading="lazy" /></a></p>
+<h2 id="よくある質問">よくある質問</h2>
+<h3 id="主キ-とは何ですか">主キーとは何ですか？</h3>
+<p>行を一意に見分ける列です。<code>id</code> が主キーなら同じ <code>id</code> の別の行は作れません。試験を繰り返す場合は、試験テーブルを分けるか重複しない値を用意します。</p>
+<h3 id="insert-update-upsert-deleteの違いは">INSERT、UPDATE、UPSERT、DELETEの違いは？</h3>
+<p>INSERTは追加、UPDATEは指定したキーの既存行を更新、UPSERTは一致する行を更新しなければ追加、DELETEは一致する行を削除します。まずINSERTで比較用の結果を作ります。</p>
+<h3 id="途中で停止すると元に戻りますか">途中で停止すると元に戻りますか？</h3>
+<p>確定済みのバッチが残ることがあります。実行履歴とDBの両方を確認してから次の実行を決めます。</p>
+<h2 id="停止と再起動">停止と再起動</h2>
+<p>生成ジョブは指定件数で完了します。停止や失敗後は、すでに確定したバッチが残る場合があるため、ジョブの確定件数とDBを確認してから次の実行を決めます。</p>
+<h2 id="想定した結果が出ないとき">想定した結果が出ないとき</h2>
+<p>接続先が選べても対象DBに権限があるとは限りません。書き込み対象、認証、テーブルの行・鍵、権限を順に照合します。</p>
+<h2 id="sql日時と主キ-の扱い">SQL日時と主キーの扱い</h2>
+<p>日時はタイムゾーン付きで入力し、値をUTCに変換します。生成するDDLでタイムゾーンを保持しない日時列に書き込む場合は、読み取り側でUTCとして扱います。主キーは、追加後にその行を更新・削除するためにも必要です。複合主キーの場合はすべてのキー列の値を照合してください。</p>
+<table>
+<thead>
+<tr>
+<th>生成の型</th>
+<th>テーブル作成時の列の考え方</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>integer</td>
+<td>整数列</td>
+</tr>
+<tr>
+<td>number</td>
+<td>浮動小数点数列</td>
+</tr>
+<tr>
+<td>decimal</td>
+<td>指定した精度・小数桁数の数値列</td>
+</tr>
+<tr>
+<td>datetime</td>
+<td>UTC値を入れる日時列。DBによってDATETIMEやDATETIME2等に変換します。</td>
+</tr>
+<tr>
+<td>json</td>
+<td>JSON表現を保存するテキスト列。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="次に読む">次に読む</h2>
+<ul>
+<li><a href="/help/presets.html">ひな型を選ぶ・作る</a></li>
+<li><a href="/help/settings.html">設定リファレンス</a></li>
+<li><a href="/help/templates.html">JSONの書き方</a></li>
+<li><a href="/help/api.html">APIの使い方</a></li>
+<li><a href="/help/glossary.html">用語集</a></li>
+</ul>
+</article>
+    </main>
+  </div>
+</body>
+</html>

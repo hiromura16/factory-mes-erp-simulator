@@ -8,7 +8,7 @@
           "http_proxy", "https_proxy", "no_proxy"
         ]
       },
-      "image": "factory-mes-erp-simulator:local",
+      "image": "factory-sql-data-loader:local",
       "restart": "unless-stopped",
       "read_only": true,
       "tmpfs": [
@@ -28,9 +28,10 @@
         "${BIND_IP:-127.0.0.1}:${APP_PORT}:8080"
       ],
       "environment": {
-        "TZ": "Asia/Tokyo",
+        "TZ": "${TZ:-Asia/Tokyo}",
         "DATA_DIR": "/data",
-        "MIN_AVAILABLE_GIB": "${MIN_AVAILABLE_GIB:-6}",
+        "APP_PORT": "${APP_PORT}",
+        "MIN_AVAILABLE_GIB": "${MIN_AVAILABLE_GIB:-1}",
         "SQL_HOST": "${SQL_HOST:-}",
         "SQL_PORT": "${SQL_PORT:-3510}",
         "SQL_DATABASE": "${SQL_DATABASE:-FactorySourceLab}",
@@ -49,7 +50,7 @@
       ],
       "labels": [
         "app.owner=factory-sources-v1",
-        "app.component=factory-mes-erp-simulator",
+        "app.component=factory-sql-data-loader",
         "traefik.enable=false",
         "${FACTORY_GUARD_LABEL_PREFIX:-factory}.guard.managed=true",
         "lab.role=heavy",

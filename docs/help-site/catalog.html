@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>付属のひな型一覧 | 汎用SQL データ投入</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/help.css">
+  <script src="/static/help.js" defer></script>
+</head>
+<body class="help-page">
+  <a class="help-skip" href="#help-content">本文へ移動</a>
+  <div class="help-top">
+    <a class="help-home" href="/">汎用SQL データ投入</a>
+    <a href="/">アプリに戻る</a>
+  </div>
+  <div class="help-layout">
+    <nav class="help-nav" aria-label="ヘルプ"><a href="/help/index.html">初めて使う</a><a href="/help/presets.html">ひな型を選ぶ・作る</a><a href="/help/templates.html">JSONの書き方</a><a href="/help/settings.html">設定リファレンス</a><a href="/help/api.html">APIの使い方</a><a href="/help/glossary.html">用語集</a><a href="/help/ai.html">AIにひな型を頼む</a><a href="/help/mcp.html">CLI・MCP</a><a href="/help/install.html">VMへの導入</a><a href="/help/catalog.html" aria-current="page">付属のひな型一覧</a></nav>
+    <main class="help-content" id="help-content">
+      <nav class="help-outline" aria-label="このページ"><a href="#ひな型ごとの内容">ひな型ごとの内容</a></nav>
+      <div class="help-search" hidden><label for="help-filter">表を検索</label><input id="help-filter" type="search" placeholder="日本語、ID、JSONキー"><p id="help-results" role="status"></p></div>
+      <article><h1>付属のひな型一覧</h1>
+<p>迷ったときは<a href="/help/presets.html">ひな型を選ぶ・作る</a>を参照してください。
+アプリで保存したひな型はアプリの一覧から開きます。</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>表示名</th>
+<th>元の件数</th>
+<th>生成する内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#01-quickstart">01-quickstart</a></td>
+<td>小さく試す</td>
+<td>30</td>
+<td>目標速度 10件/秒、1バッチ 10件で試す</td>
+</tr>
+<tr>
+<td><a href="#02-volume-100k">02-volume-100k</a></td>
+<td>10万件 / 負荷計測</td>
+<td>100000</td>
+<td>目標速度 1,000件/秒、1バッチ 1,000件で試す</td>
+</tr>
+<tr>
+<td><a href="#03-volume-1m">03-volume-1m</a></td>
+<td>100万件 / 連続生成</td>
+<td>1000000</td>
+<td>目標速度 5,000件/秒、1バッチ 2,000件で試す</td>
+</tr>
+<tr>
+<td><a href="#04-volume-10m">04-volume-10m</a></td>
+<td>1000万件 / 大規模試験</td>
+<td>10000000</td>
+<td>目標速度 10,000件/秒、1バッチ 5,000件で試す</td>
+</tr>
+<tr>
+<td><a href="#05-constant-baseline">05-constant-baseline</a></td>
+<td>固定値 / 基準データ</td>
+<td>120</td>
+<td>値を常に50とし、他の条件変更前の基準データを作ります</td>
+</tr>
+<tr>
+<td><a href="#06-uniform-range">06-uniform-range</a></td>
+<td>一様分布 / 範囲指定</td>
+<td>120</td>
+<td>valueを-20〜120の範囲で均等に生成します</td>
+</tr>
+<tr>
+<td><a href="#07-weighted-states">07-weighted-states</a></td>
+<td>状態比率 95 : 4 : 1</td>
+<td>120</td>
+<td>statusはok / warning / stoppedを95:4:1で選択。重み付き選択の例</td>
+</tr>
+<tr>
+<td><a href="#08-nullable-measurements">08-nullable-measurements</a></td>
+<td>欠測あり / NULL率20%</td>
+<td>120</td>
+<td>valueの20%をNULLにします。欠測の取り込み・集計確認用</td>
+</tr>
+<tr>
+<td><a href="#09-cyclic-counter">09-cyclic-counter</a></td>
+<td>周期カウンター / 0〜59</td>
+<td>120</td>
+<td>sequence_noが0〜59を繰り返します。idは各行で異なるため主キーは衝突しません</td>
+</tr>
+<tr>
+<td><a href="#10-grouped-clock">10-grouped-clock</a></td>
+<td>グループ時刻 / 20件で1秒</td>
+<td>120</td>
+<td>20レコードごとにevent_timeを1秒進めます。複数ソースから同時刻に発生するデータの例</td>
+</tr>
+<tr>
+<td><a href="#11-historical-replay">11-historical-replay</a></td>
+<td>過去データ / 時系列再現</td>
+<td>120</td>
+<td>過去の日付から0.1秒刻みで生成。生成速度とイベント日時を分けて制御します</td>
+</tr>
+<tr>
+<td><a href="#12-high-cardinality">12-high-cardinality</a></td>
+<td>多数ソース / 10万種類</td>
+<td>10000</td>
+<td>entity_noを1〜10万から選択。高カーディナリティ列の検証用</td>
+</tr>
+<tr>
+<td><a href="#13-burst-load">13-burst-load</a></td>
+<td>バースト / 500件ずつ</td>
+<td>5000</td>
+<td>500件ごとに1秒待機する、間欠的な投入負荷</td>
+</tr>
+<tr>
+<td><a href="#14-low-rate">14-low-rate</a></td>
+<td>低速 / 毎秒2件</td>
+<td>60</td>
+<td>少量ずつ増えるソースを再現。バッチ1件、毎秒2件</td>
+</tr>
+<tr>
+<td><a href="#15-multilingual">15-multilingual</a></td>
+<td>多言語文字列 / UTF-8</td>
+<td>120</td>
+<td>状態に日本語と英語を混在させ、文字化けや列長を確認します</td>
+</tr>
+<tr>
+<td><a href="#16-decimal-amounts">16-decimal-amounts</a></td>
+<td>金額・数量 / 正確な小数</td>
+<td>120</td>
+<td>demo_amountsを使用。数量・単価・計算金額を生成します。未作成ならテーブル作成操作が必要です</td>
+</tr>
+<tr>
+<td><a href="#17-json-attributes">17-json-attributes</a></td>
+<td>任意属性 / JSON列</td>
+<td>120</td>
+<td>demo_jsonを使用。入れ子の属性をSQLのJSON相当列へ保存する例</td>
+</tr>
+<tr>
+<td><a href="#18-composite-key">18-composite-key</a></td>
+<td>複合主キー / グループと番号</td>
+<td>120</td>
+<td>demo_compositeを使用。group_noとsample_noの組み合わせを主キーにします</td>
+</tr>
+<tr>
+<td><a href="#19-derived-ratio">19-derived-ratio</a></td>
+<td>派生項目 / 差分と比率</td>
+<td>120</td>
+<td>demo_ratiosを使用。totalとrejectからgoodとyield_ratioを計算します</td>
+</tr>
+<tr>
+<td><a href="#20-conditional-values">20-conditional-values</a></td>
+<td>条件による値変更</td>
+<td>120</td>
+<td>statusがstoppedならvalueを0に置き換えます。先行項目を使った条件分岐の例</td>
+</tr>
+<tr>
+<td><a href="#21-insert-seed">21-insert-seed</a></td>
+<td>CRUD 1 / 初回追加</td>
+<td>120</td>
+<td>demo_upsertの初回投入用です。同じ主キーで繰り返し追加すると重複します</td>
+</tr>
+<tr>
+<td><a href="#22-upsert-refresh">22-upsert-refresh</a></td>
+<td>CRUD 2 / 同じキーを更新</td>
+<td>120</td>
+<td>demo_upsertへ追加または更新します。21と同じキーを再利用でき、繰り返し実行できます</td>
+</tr>
+<tr>
+<td><a href="#23-update-existing">23-update-existing</a></td>
+<td>CRUD 3 / 既存行だけ更新</td>
+<td>120</td>
+<td>21または22で投入したdemo_upsertの行を、同じ主キーで更新します</td>
+</tr>
+<tr>
+<td><a href="#24-resume-sequence">24-resume-sequence</a></td>
+<td>シーケンスの途中から再開</td>
+<td>120</td>
+<td>既存系列と同じrun_key・seedを指定し、start_sequenceを変更する例</td>
+</tr>
+<tr>
+<td><a href="#25-mes-sensor-spike">25-mes-sensor-spike</a></td>
+<td>異常 / MES センサーの突発値</td>
+<td>120</td>
+<td>valueを20〜39件目だけ250へ変更。前後は通常の正規分布です</td>
+</tr>
+<tr>
+<td><a href="#26-mes-sensor-drift">26-mes-sensor-drift</a></td>
+<td>異常 / MES センサーの徐々なドリフト</td>
+<td>120</td>
+<td>valueへ20件目から1件ごとに2を追加するramp。39件目で最大+38、その後は復帰</td>
+</tr>
+<tr>
+<td><a href="#27-mes-stuck-signal">27-mes-stuck-signal</a></td>
+<td>異常 / MES センサー値の固着</td>
+<td>120</td>
+<td>20〜39件目のvalueを20件目の値に固定します。IDとevent_timeは進みます</td>
+</tr>
+<tr>
+<td><a href="#28-mes-missing-values">28-mes-missing-values</a></td>
+<td>異常 / MES 測定値の欠測</td>
+<td>120</td>
+<td>20〜39件目で50%の確率でvalueをNULL。seedが同じなら欠測位置も再現します</td>
+</tr>
+<tr>
+<td><a href="#29-mes-late-events">29-mes-late-events</a></td>
+<td>異常 / MES 遅延・順序逆転</td>
+<td>120</td>
+<td>20〜39件目のうち2件ごとにevent_timeを120秒戻します。配送順そのものはシーケンス順です</td>
+</tr>
+<tr>
+<td><a href="#30-mes-clock-skew">30-mes-clock-skew</a></td>
+<td>異常 / MES 設備時計が未来へずれる</td>
+<td>120</td>
+<td>20〜39件目のevent_timeを86400秒進めます。タイムゾーン表記は有効なままです</td>
+</tr>
+<tr>
+<td><a href="#31-mes-unit-mismatch">31-mes-unit-mismatch</a></td>
+<td>異常 / MES 単位・倍率の食い違い</td>
+<td>120</td>
+<td>20〜39件目のvalueを1000倍にします。列名や型は変えません</td>
+</tr>
+<tr>
+<td><a href="#32-mes-unknown-state">32-mes-unknown-state</a></td>
+<td>異常 / MES 未知の状態コード</td>
+<td>120</td>
+<td>20〜39件目のstatusをUNKNOWN_CODEへ変更します。文字列としては正常です</td>
+</tr>
+<tr>
+<td><a href="#33-mes-negative-quantity">33-mes-negative-quantity</a></td>
+<td>異常 / MES 負の生産数量</td>
+<td>120</td>
+<td>totalを-20へ変更。good/reject/yield_ratioは変更前の計算値を残します</td>
+</tr>
+<tr>
+<td><a href="#34-mes-reject-exceeds-total">34-mes-reject-exceeds-total</a></td>
+<td>異常 / MES 不良数が生産数を超える</td>
+<td>120</td>
+<td>rejectを180へ変更。通常のtotalは100〜120です</td>
+</tr>
+<tr>
+<td><a href="#35-mes-impossible-yield">35-mes-impossible-yield</a></td>
+<td>異常 / MES 歩留まりが100%を超える</td>
+<td>120</td>
+<td>yield_ratioだけを1.2へ変更。total/good/rejectは正常のままです</td>
+</tr>
+<tr>
+<td><a href="#36-mes-orphan-work-order">36-mes-orphan-work-order</a></td>
+<td>異常 / MES 存在しない製造指図</td>
+<td>120</td>
+<td>work_order_idをWO-MISSINGへ変更。通常の有効IDはparameters.valid_work_ordersに列挙しています</td>
+</tr>
+<tr>
+<td><a href="#37-mes-route-step-jump">37-mes-route-step-jump</a></td>
+<td>異常 / MES 工程番号の飛び</td>
+<td>120</td>
+<td>process_stepへ100を加えます。通常は0〜4の周期です</td>
+</tr>
+<tr>
+<td><a href="#38-erp-negative-stock">38-erp-negative-stock</a></td>
+<td>異常 / ERP マイナス在庫</td>
+<td>120</td>
+<td>qty_on_handを-5へ変更。reserved/availableは元の値を残します</td>
+</tr>
+<tr>
+<td><a href="#39-erp-over-reservation">39-erp-over-reservation</a></td>
+<td>異常 / ERP 引当が在庫を超える</td>
+<td>120</td>
+<td>reservedを2000へ変更。通常qty_on_handは100〜1000です</td>
+</tr>
+<tr>
+<td><a href="#40-erp-amount-discrepancy">40-erp-amount-discrepancy</a></td>
+<td>異常 / ERP 数量×単価と金額の不一致</td>
+<td>120</td>
+<td>amountへ0.01加算。quantityとunit_priceは変更しません</td>
+</tr>
+<tr>
+<td><a href="#41-erp-duplicate-document">41-erp-duplicate-document</a></td>
+<td>異常 / ERP 業務伝票の重複</td>
+<td>120</td>
+<td>20〜39件目のdocument_idを先頭行の番号に置き換えます。技術的なidは異なるため通常のPKでは検知できません</td>
+</tr>
+<tr>
+<td><a href="#42-erp-orphan-product">42-erp-orphan-product</a></td>
+<td>異常 / ERP 未登録の品目参照</td>
+<td>120</td>
+<td>product_idをPRODUCT-MISSINGへ変更。通常の有効コードはparameters.valid_productsに列挙しています</td>
+</tr>
+<tr>
+<td><a href="#43-invalid-value-type">43-invalid-value-type</a></td>
+<td>異常 / 数値欄へ文字列が混入</td>
+<td>120</td>
+<td>valueへSENSOR_ERRORを入れ、型検証の迂回を明示的に有効化します</td>
+</tr>
+<tr>
+<td><a href="#44-missing-required-field">44-missing-required-field</a></td>
+<td>異常 / 必須項目そのものが欠落</td>
+<td>120</td>
+<td>20〜39件目のvalueキーを削除します。JSON/ストリームは欠落、CSVは空セルになります</td>
+</tr>
+<tr>
+<td><a href="#45-sql-duplicate-primary-key">45-sql-duplicate-primary-key</a></td>
+<td>異常 / SQL 主キー重複 / 意図的な失敗</td>
+<td>120</td>
+<td>10件ずつcommit。20〜39件目のidを先頭のidへ変更し、重複するバッチはrollbackします</td>
+</tr>
+<tr>
+<td><a href="#46-sql-rollback-fault">46-sql-rollback-fault</a></td>
+<td>異常 / SQL COMMIT前の障害</td>
+<td>120</td>
+<td>1バッチ目の書き込み後・COMMIT前に意図的な例外を発生させます</td>
+</tr>
+<tr>
+<td><a href="#47-sql-slow-batches">47-sql-slow-batches</a></td>
+<td>異常 / SQL 処理遅延 / 断続的な待機</td>
+<td>120</td>
+<td>最初の3バッチの処理前に1秒ずつ待機します</td>
+</tr>
+<tr>
+<td><a href="#48-erp-cancelled-shipped">48-erp-cancelled-shipped</a></td>
+<td>異常 / ERP 取消済みなのに出荷済み</td>
+<td>120</td>
+<td>statusだけをCANCELLEDへ変更。CLOSEDだった行のshipped_qtyは正のまま残ります</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ひな型ごとの内容">ひな型ごとの内容</h2>
+<h3 id="01-quickstart">01-quickstart</h3>
+<p><strong>小さく試す</strong> · <a href="/help/preset-files/01-quickstart.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　同じ汎用項目を使用し、件数・速度・バッチを段階的に変更する負荷試験。大規模試験前に少量で接続先の性能と容量を確認します。 件数30、目標速度10件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="02-volume-100k">02-volume-100k</h3>
+<p><strong>10万件 / 負荷計測</strong> · <a href="/help/preset-files/02-volume-100k.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　同じ汎用項目を使用し、件数・速度・バッチを段階的に変更する負荷試験。大規模試験前に少量で接続先の性能と容量を確認します。 件数100,000、目標速度1,000件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="03-volume-1m">03-volume-1m</h3>
+<p><strong>100万件 / 連続生成</strong> · <a href="/help/preset-files/03-volume-1m.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　同じ汎用項目を使用し、件数・速度・バッチを段階的に変更する負荷試験。大規模試験前に少量で接続先の性能と容量を確認します。 件数1,000,000、目標速度5,000件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="04-volume-10m">04-volume-10m</h3>
+<p><strong>1000万件 / 大規模試験</strong> · <a href="/help/preset-files/04-volume-10m.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　同じ汎用項目を使用し、件数・速度・バッチを段階的に変更する負荷試験。大規模試験前に少量で接続先の性能と容量を確認します。 件数10,000,000、目標速度10,000件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="05-constant-baseline">05-constant-baseline</h3>
+<p><strong>固定値 / 基準データ</strong> · <a href="/help/preset-files/05-constant-baseline.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　値を常に50とし、他の条件変更前の基準データを作ります。 件数120、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="06-uniform-range">06-uniform-range</h3>
+<p><strong>一様分布 / 範囲指定</strong> · <a href="/help/preset-files/06-uniform-range.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　valueを-20〜120の範囲で均等に生成します。 件数120、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="07-weighted-states">07-weighted-states</h3>
+<p><strong>状態比率 95 : 4 : 1</strong> · <a href="/help/preset-files/07-weighted-states.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　statusはok / warning / stoppedを95:4:1で選択。重み付き選択の例。 件数120、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="08-nullable-measurements">08-nullable-measurements</h3>
+<p><strong>欠測あり / NULL率20%</strong> · <a href="/help/preset-files/08-nullable-measurements.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　valueの20%をNULLにします。欠測の取り込み・集計確認用。 件数120、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="09-cyclic-counter">09-cyclic-counter</h3>
+<p><strong>周期カウンター / 0〜59</strong> · <a href="/help/preset-files/09-cyclic-counter.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　sequence_noが0〜59を繰り返します。idは各行で異なるため主キーは衝突しません。 件数120、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="10-grouped-clock">10-grouped-clock</h3>
+<p><strong>グループ時刻 / 20件で1秒</strong> · <a href="/help/preset-files/10-grouped-clock.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　20レコードごとにevent_timeを1秒進めます。複数ソースから同時刻に発生するデータの例。 件数120、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="11-historical-replay">11-historical-replay</h3>
+<p><strong>過去データ / 時系列再現</strong> · <a href="/help/preset-files/11-historical-replay.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　過去の日付から0.1秒刻みで生成。生成速度とイベント日時を分けて制御します。 件数120、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="12-high-cardinality">12-high-cardinality</h3>
+<p><strong>多数ソース / 10万種類</strong> · <a href="/help/preset-files/12-high-cardinality.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　entity_noを1〜10万から選択。高カーディナリティ列の検証用。 件数10,000、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="13-burst-load">13-burst-load</h3>
+<p><strong>バースト / 500件ずつ</strong> · <a href="/help/preset-files/13-burst-load.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　500件ごとに1秒待機する、間欠的な投入負荷。 件数5,000、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="14-low-rate">14-low-rate</h3>
+<p><strong>低速 / 毎秒2件</strong> · <a href="/help/preset-files/14-low-rate.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　少量ずつ増えるソースを再現。バッチ1件、毎秒2件。 件数60、目標速度2件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="15-multilingual">15-multilingual</h3>
+<p><strong>多言語文字列 / UTF-8</strong> · <a href="/help/preset-files/15-multilingual.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　状態に日本語と英語を混在させ、文字化けや列長を確認します。 件数120、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="16-decimal-amounts">16-decimal-amounts</h3>
+<p><strong>金額・数量 / 正確な小数</strong> · <a href="/help/preset-files/16-decimal-amounts.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　demo_amountsを使用。数量・単価・計算金額を生成します。未作成ならテーブル作成操作が必要です。 件数120、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="17-json-attributes">17-json-attributes</h3>
+<p><strong>任意属性 / JSON列</strong> · <a href="/help/preset-files/17-json-attributes.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　demo_jsonを使用。入れ子の属性をSQLのJSON相当列へ保存する例。 件数120、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="18-composite-key">18-composite-key</h3>
+<p><strong>複合主キー / グループと番号</strong> · <a href="/help/preset-files/18-composite-key.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　demo_compositeを使用。group_noとsample_noの組み合わせを主キーにします。 件数120、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="19-derived-ratio">19-derived-ratio</h3>
+<p><strong>派生項目 / 差分と比率</strong> · <a href="/help/preset-files/19-derived-ratio.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　demo_ratiosを使用。totalとrejectからgoodとyield_ratioを計算します。 件数120、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="20-conditional-values">20-conditional-values</h3>
+<p><strong>条件による値変更</strong> · <a href="/help/preset-files/20-conditional-values.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　statusがstoppedならvalueを0に置き換えます。先行項目を使った条件分岐の例。 件数120、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="21-insert-seed">21-insert-seed</h3>
+<p><strong>CRUD 1 / 初回追加</strong> · <a href="/help/preset-files/21-insert-seed.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　demo_upsertの初回投入用です。同じ主キーで繰り返し追加すると重複します。 件数120、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="22-upsert-refresh">22-upsert-refresh</h3>
+<p><strong>CRUD 2 / 同じキーを更新</strong> · <a href="/help/preset-files/22-upsert-refresh.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　demo_upsertへ追加または更新します。21と同じキーを再利用でき、繰り返し実行できます。 件数120、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="23-update-existing">23-update-existing</h3>
+<p><strong>CRUD 3 / 既存行だけ更新</strong> · <a href="/help/preset-files/23-update-existing.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　21または22で投入したdemo_upsertの行を、同じ主キーで更新します。 件数120、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="24-resume-sequence">24-resume-sequence</h3>
+<p><strong>シーケンスの途中から再開</strong> · <a href="/help/preset-files/24-resume-sequence.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。</li>
+<li><strong>このプリセットの内容</strong>　既存系列と同じrun_key・seedを指定し、start_sequenceを変更する例。 件数120、目標速度0件/秒（0は制限なし）。</li>
+<li><strong>確認すること</strong>　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。</li>
+<li><strong>実行前の条件</strong>　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。</li>
+</ul>
+<h3 id="25-mes-sensor-spike">25-mes-sensor-spike</h3>
+<p><strong>異常 / MES センサーの突発値</strong> · <a href="/help/preset-files/25-mes-sensor-spike.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　測定系への瞬間的なノイズや設備の異常発熱を想定。平均50付近の値に短い高値区間を混ぜます。</li>
+<li><strong>発生するデータ・タイミング</strong>　valueを20〜39件目だけ250へ変更。前後は通常の正規分布です。</li>
+<li><strong>確認すること</strong>　範囲チェック、異常期間の可視化、元の正常データへの復帰、異常レコードの隔離。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。</li>
+</ul>
+<h3 id="26-mes-sensor-drift">26-mes-sensor-drift</h3>
+<p><strong>異常 / MES センサーの徐々なドリフト</strong> · <a href="/help/preset-files/26-mes-sensor-drift.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　校正ずれや温度上昇で値が徐々に偏るケース。単発の閾値超過より検知しにくい変化を再現します。</li>
+<li><strong>発生するデータ・タイミング</strong>　valueへ20件目から1件ごとに2を追加するramp。39件目で最大+38、その後は復帰。</li>
+<li><strong>確認すること</strong>　移動平均や傾向監視、単純な閾値検知との差、校正前後の比較。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。</li>
+</ul>
+<h3 id="27-mes-stuck-signal">27-mes-stuck-signal</h3>
+<p><strong>異常 / MES センサー値の固着</strong> · <a href="/help/preset-files/27-mes-stuck-signal.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　センサーや通信キャッシュが停止し、時刻やレコードは増えるのに測定値が変化しない状態。</li>
+<li><strong>発生するデータ・タイミング</strong>　20〜39件目のvalueを20件目の値に固定します。IDとevent_timeは進みます。</li>
+<li><strong>確認すること</strong>　連続同値、分散ゼロ、更新時刻と測定値の食い違いの検知。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。</li>
+</ul>
+<h3 id="28-mes-missing-values">28-mes-missing-values</h3>
+<p><strong>異常 / MES 測定値の欠測</strong> · <a href="/help/preset-files/28-mes-missing-values.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　一時的な機器読み取り失敗や、MESへの登録時に測定値が空になるケース。</li>
+<li><strong>発生するデータ・タイミング</strong>　20〜39件目で50%の確率でvalueをNULL。seedが同じなら欠測位置も再現します。</li>
+<li><strong>確認すること</strong>　NULL率、欠測補完、集計の分母、欠測を0と誤認しないこと。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。</li>
+</ul>
+<h3 id="29-mes-late-events">29-mes-late-events</h3>
+<p><strong>異常 / MES 遅延・順序逆転</strong> · <a href="/help/preset-files/29-mes-late-events.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　設備側のバッファやネットワーク遅延で、遅いイベント時刻のデータが後から到着する状態。</li>
+<li><strong>発生するデータ・タイミング</strong>　20〜39件目のうち2件ごとにevent_timeを120秒戻します。配送順そのものはシーケンス順です。</li>
+<li><strong>確認すること</strong>　event_timeと取り込み時刻の区別、遅延許容窓、時系列の再整列。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。</li>
+</ul>
+<h3 id="30-mes-clock-skew">30-mes-clock-skew</h3>
+<p><strong>異常 / MES 設備時計が未来へずれる</strong> · <a href="/help/preset-files/30-mes-clock-skew.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　NTP不調や設備時計の設定誤りで、1日先の時刻が登録されるケース。</li>
+<li><strong>発生するデータ・タイミング</strong>　20〜39件目のevent_timeを86400秒進めます。タイムゾーン表記は有効なままです。</li>
+<li><strong>確認すること</strong>　未来時刻の検知、時刻補正、ダッシュボードの最新値が引っ張られないこと。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。</li>
+</ul>
+<h3 id="31-mes-unit-mismatch">31-mes-unit-mismatch</h3>
+<p><strong>異常 / MES 単位・倍率の食い違い</strong> · <a href="/help/preset-files/31-mes-unit-mismatch.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　単位変更が伝わらず、kPa/Paやmm/µmのように1000倍の値が混在する状況。</li>
+<li><strong>発生するデータ・タイミング</strong>　20〜39件目のvalueを1000倍にします。列名や型は変えません。</li>
+<li><strong>確認すること</strong>　単位のメタデータ管理、桁違い検知、範囲外データを正常平均へ混ぜないこと。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。</li>
+</ul>
+<h3 id="32-mes-unknown-state">32-mes-unknown-state</h3>
+<p><strong>異常 / MES 未知の状態コード</strong> · <a href="/help/preset-files/32-mes-unknown-state.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　設備ファームウェアやMESバージョン更新で、未定義の状態コードが出るケース。</li>
+<li><strong>発生するデータ・タイミング</strong>　20〜39件目のstatusをUNKNOWN_CODEへ変更します。文字列としては正常です。</li>
+<li><strong>確認すること</strong>　列挙値の検証、未知コードの隔離、スキーマ進化と既存集計への影響。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。</li>
+</ul>
+<h3 id="33-mes-negative-quantity">33-mes-negative-quantity</h3>
+<p><strong>異常 / MES 負の生産数量</strong> · <a href="/help/preset-files/33-mes-negative-quantity.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　符号の取り違えや取消処理を通常実績として登録してしまうケース。</li>
+<li><strong>発生するデータ・タイミング</strong>　totalを-20へ変更。good/reject/yield_ratioは変更前の計算値を残します。</li>
+<li><strong>確認すること</strong>　数量&gt;=0とtotal=good+rejectの両方の検証。取消イベントとの区別。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。 SQLではscenario_mes_qualityを使用します。接続先で検証用テーブルのDDLを確認し、必要に応じて作成してください。</li>
+</ul>
+<h3 id="34-mes-reject-exceeds-total">34-mes-reject-exceeds-total</h3>
+<p><strong>異常 / MES 不良数が生産数を超える</strong> · <a href="/help/preset-files/34-mes-reject-exceeds-total.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　不良実績の二重登録や集計単位の混在で、不良数が総数より大きくなる状態。</li>
+<li><strong>発生するデータ・タイミング</strong>　rejectを180へ変更。通常のtotalは100〜120です。</li>
+<li><strong>確認すること</strong>　reject&lt;=total、集計粒度、重複検知、良品数との整合性。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。 SQLではscenario_mes_qualityを使用します。接続先で検証用テーブルのDDLを確認し、必要に応じて作成してください。</li>
+</ul>
+<h3 id="35-mes-impossible-yield">35-mes-impossible-yield</h3>
+<p><strong>異常 / MES 歩留まりが100%を超える</strong> · <a href="/help/preset-files/35-mes-impossible-yield.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　歩留まりの分母間違い、パーセントと比率の混同などを想定。</li>
+<li><strong>発生するデータ・タイミング</strong>　yield_ratioだけを1.2へ変更。total/good/rejectは正常のままです。</li>
+<li><strong>確認すること</strong>　比率0〜1の範囲とgood/totalの再計算一致。表示上の120%を見落とさないこと。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。 SQLではscenario_mes_qualityを使用します。接続先で検証用テーブルのDDLを確認し、必要に応じて作成してください。</li>
+</ul>
+<h3 id="36-mes-orphan-work-order">36-mes-orphan-work-order</h3>
+<p><strong>異常 / MES 存在しない製造指図</strong> · <a href="/help/preset-files/36-mes-orphan-work-order.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　MES実績がERPの指図マスターへ結合できないケース。連携順序のずれも想定します。</li>
+<li><strong>発生するデータ・タイミング</strong>　work_order_idをWO-MISSINGへ変更。通常の有効IDはparameters.valid_work_ordersに列挙しています。</li>
+<li><strong>確認すること</strong>　参照整合性、遅延到着マスターの待ち合わせ、未結合レコード数の監視。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。 SQLではscenario_mes_routingを使用します。接続先で検証用テーブルのDDLを確認し、必要に応じて作成してください。</li>
+</ul>
+<h3 id="37-mes-route-step-jump">37-mes-route-step-jump</h3>
+<p><strong>異常 / MES 工程番号の飛び</strong> · <a href="/help/preset-files/37-mes-route-step-jump.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　工程スキップ、ルート版の違い、手入力ミスで予定外の工程番号が記録される状態。</li>
+<li><strong>発生するデータ・タイミング</strong>　process_stepへ100を加えます。通常は0〜4の周期です。</li>
+<li><strong>確認すること</strong>　ルートマスターとの照合、工程順序の検査、リワークと異常工程の区別。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。 SQLではscenario_mes_routingを使用します。接続先で検証用テーブルのDDLを確認し、必要に応じて作成してください。</li>
+</ul>
+<h3 id="38-erp-negative-stock">38-erp-negative-stock</h3>
+<p><strong>異常 / ERP マイナス在庫</strong> · <a href="/help/preset-files/38-erp-negative-stock.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　出庫の先行連携、二重出庫、棚卸調整の誤りで在庫が負になるケース。</li>
+<li><strong>発生するデータ・タイミング</strong>　qty_on_handを-5へ変更。reserved/availableは元の値を残します。</li>
+<li><strong>確認すること</strong>　在庫の下限、available=qty_on_hand-reservedの一致、出入庫の重複と到着順。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。 SQLではscenario_erp_inventoryを使用します。接続先で検証用テーブルのDDLを確認し、必要に応じて作成してください。</li>
+</ul>
+<h3 id="39-erp-over-reservation">39-erp-over-reservation</h3>
+<p><strong>異常 / ERP 引当が在庫を超える</strong> · <a href="/help/preset-files/39-erp-over-reservation.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　並行した指図引当や在庫更新の遅れにより、在庫以上に予約される状態。</li>
+<li><strong>発生するデータ・タイミング</strong>　reservedを2000へ変更。通常qty_on_handは100〜1000です。</li>
+<li><strong>確認すること</strong>　引当&lt;=在庫、有効在庫の再計算、拠点・ロット単位の整合性。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。 SQLではscenario_erp_inventoryを使用します。接続先で検証用テーブルのDDLを確認し、必要に応じて作成してください。</li>
+</ul>
+<h3 id="40-erp-amount-discrepancy">40-erp-amount-discrepancy</h3>
+<p><strong>異常 / ERP 数量×単価と金額の不一致</strong> · <a href="/help/preset-files/40-erp-amount-discrepancy.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　丸め差、税区分、転記ミス、誤った再計算で請求金額が合わないケース。</li>
+<li><strong>発生するデータ・タイミング</strong>　amountへ0.01加算。quantityとunit_priceは変更しません。</li>
+<li><strong>確認すること</strong>　正確な小数演算、通貨ごとの丸め、許容差、金額再計算の照合。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。 SQLではscenario_erp_amountsを使用します。接続先で検証用テーブルのDDLを確認し、必要に応じて作成してください。</li>
+</ul>
+<h3 id="41-erp-duplicate-document">41-erp-duplicate-document</h3>
+<p><strong>異常 / ERP 業務伝票の重複</strong> · <a href="/help/preset-files/41-erp-duplicate-document.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　取り込みの再実行や送信側リトライで、同じ伝票番号が別レコードとして届く状態。</li>
+<li><strong>発生するデータ・タイミング</strong>　20〜39件目のdocument_idを先頭行の番号に置き換えます。技術的なidは異なるため通常のPKでは検知できません。</li>
+<li><strong>確認すること</strong>　業務キーによる重複排除、技術IDとの違い、売上や在庫を二重計上しないこと。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。 SQLではscenario_erp_documentsを使用します。接続先で検証用テーブルのDDLを確認し、必要に応じて作成してください。</li>
+</ul>
+<h3 id="42-erp-orphan-product">42-erp-orphan-product</h3>
+<p><strong>異常 / ERP 未登録の品目参照</strong> · <a href="/help/preset-files/42-erp-orphan-product.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　品目マスターより先に明細が届く、または廃番・コード変換の誤りで結合に失敗するケース。</li>
+<li><strong>発生するデータ・タイミング</strong>　product_idをPRODUCT-MISSINGへ変更。通常の有効コードはparameters.valid_productsに列挙しています。</li>
+<li><strong>確認すること</strong>　参照マスターの遅延、未結合率、誤ったinner joinで明細が消えないこと。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。 SQLではscenario_erp_referencesを使用します。接続先で検証用テーブルのDDLを確認し、必要に応じて作成してください。</li>
+</ul>
+<h3 id="43-invalid-value-type">43-invalid-value-type</h3>
+<p><strong>異常 / 数値欄へ文字列が混入</strong> · <a href="/help/preset-files/43-invalid-value-type.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　機器が数値の代わりにエラー文字列を返す、CSV連携で型推論が崩れる状況。</li>
+<li><strong>発生するデータ・タイミング</strong>　valueへSENSOR_ERRORを入れ、型検証の迂回を明示的に有効化します。</li>
+<li><strong>確認すること</strong>　数値変換エラーの隔離、型の変化、元データの保持。SQLではバッチが拒否され停止し得ます。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。 意図的な不正型なので、SQLで失敗すること自体が期待する試験結果です。</li>
+</ul>
+<h3 id="44-missing-required-field">44-missing-required-field</h3>
+<p><strong>異常 / 必須項目そのものが欠落</strong> · <a href="/help/preset-files/44-missing-required-field.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　ソースのスキーマ変更やシリアライズ不具合で、NULLではなくキー自体が消えるケース。</li>
+<li><strong>発生するデータ・タイミング</strong>　20〜39件目のvalueキーを削除します。JSON/ストリームは欠落、CSVは空セルになります。</li>
+<li><strong>確認すること</strong>　NULLと欠落の区別、スキーマ検査、必須列不足時の隔離。SQLは列データ不足として停止し得ます。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。</li>
+</ul>
+<h3 id="45-sql-duplicate-primary-key">45-sql-duplicate-primary-key</h3>
+<p><strong>異常 / SQL 主キー重複 / 意図的な失敗</strong> · <a href="/help/preset-files/45-sql-duplicate-primary-key.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　再送を単純insertで取り込んだ際の主キー衝突。</li>
+<li><strong>発生するデータ・タイミング</strong>　10件ずつcommit。20〜39件目のidを先頭のidへ変更し、重複するバッチはrollbackします。</li>
+<li><strong>確認すること</strong>　成功済みバッチと失敗バッチの境界、再実行のupsert設計、CDCに未commitデータが出ないこと。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。 run_keyを新しくして実行してください。失敗バッチは確定せず、前のcommitは残ります。</li>
+</ul>
+<h3 id="46-sql-rollback-fault">46-sql-rollback-fault</h3>
+<p><strong>異常 / SQL COMMIT前の障害</strong> · <a href="/help/preset-files/46-sql-rollback-fault.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　DBの通信障害やアプリ停止で、書き込んだトランザクションがcommitされない状況。</li>
+<li><strong>発生するデータ・タイミング</strong>　1バッチ目の書き込み後・COMMIT前に意図的な例外を発生させます。</li>
+<li><strong>確認すること</strong>　バッチ全体のrollback、再実行、CDCへ未確定行が出ないこと。</li>
+<li><strong>実行・判定</strong>　この障害注入は意図的なfailed終了です。SQLは失敗バッチをrollback、ファイルは完了マニフェストを作らず、ストリームは配送を確定できない分をoutboxへ残します。成功済みの別バッチは残ります。 外部サーバーやネットワーク設定は変更しません。</li>
+</ul>
+<h3 id="47-sql-slow-batches">47-sql-slow-batches</h3>
+<p><strong>異常 / SQL 処理遅延 / 断続的な待機</strong> · <a href="/help/preset-files/47-sql-slow-batches.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　ロック待ちや処理遅延に似た、アプリ側の待機を再現します。実際にDBをロック・停止する機能ではありません。</li>
+<li><strong>発生するデータ・タイミング</strong>　最初の3バッチの処理前に1秒ずつ待機します。</li>
+<li><strong>確認すること</strong>　遅延による取り込みlag、停止要求、実行時間上限の挙動。</li>
+<li><strong>実行・判定</strong>　意図的な待機が入ります。通常はcompletedとなりますが、時間上限や停止要求があれば途中で止まります。 外部サーバーやネットワーク設定は変更しません。</li>
+</ul>
+<h3 id="48-erp-cancelled-shipped">48-erp-cancelled-shipped</h3>
+<p><strong>異常 / ERP 取消済みなのに出荷済み</strong> · <a href="/help/preset-files/48-erp-cancelled-shipped.json">JSONをダウンロード</a></p>
+<ul>
+<li><strong>想定する状況</strong>　取消伝票と出荷実績の連携順序や状態更新が食い違うケース。</li>
+<li><strong>発生するデータ・タイミング</strong>　statusだけをCANCELLEDへ変更。CLOSEDだった行のshipped_qtyは正のまま残ります。</li>
+<li><strong>確認すること</strong>　状態と実績数量の横断チェック、取消と逆仕訳の関係。</li>
+<li><strong>実行・判定</strong>　データ自体の異常です。DBや受信先に制約がなければ生成・配送は完了し、取り込み側の品質チェックで検知する想定です。 通常は0〜19件目が正常、20〜39件目が異常、40件目以降は復帰します。位置・割合・条件は異常ルールで編集できます。 SQLではscenario_erp_documentsを使用します。接続先で検証用テーブルのDDLを確認し、必要に応じて作成してください。</li>
+</ul>
+</article>
+    </main>
+  </div>
+</body>
+</html>
