@@ -3,56 +3,56 @@
 迷ったときは[ひな型を選ぶ・作る](../docs/preset-guide.md)を参照してください。
 アプリで保存したひな型はアプリの一覧から開きます。
 
-| ID | 表示名 | 元の件数 | 想定 |
+| ID | 表示名 | 元の件数 | 生成する内容 |
 | --- | --- | --- | --- |
-| [01-quickstart](#01-quickstart) | 小さく試す | 30 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [02-volume-100k](#02-volume-100k) | 10万件 / 負荷計測 | 100000 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [03-volume-1m](#03-volume-1m) | 100万件 / 連続生成 | 1000000 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [04-volume-10m](#04-volume-10m) | 1000万件 / 大規模試験 | 10000000 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [05-constant-baseline](#05-constant-baseline) | 固定値 / 基準データ | 120 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [06-uniform-range](#06-uniform-range) | 一様分布 / 範囲指定 | 120 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [07-weighted-states](#07-weighted-states) | 状態比率 95 : 4 : 1 | 120 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [08-nullable-measurements](#08-nullable-measurements) | 欠測あり / NULL率20% | 120 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [09-cyclic-counter](#09-cyclic-counter) | 周期カウンター / 0〜59 | 120 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [10-grouped-clock](#10-grouped-clock) | グループ時刻 / 20件で1秒 | 120 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [11-historical-replay](#11-historical-replay) | 過去データ / 時系列再現 | 120 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [12-high-cardinality](#12-high-cardinality) | 多数ソース / 10万種類 | 10000 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [13-burst-load](#13-burst-load) | バースト / 500件ずつ | 5000 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [14-low-rate](#14-low-rate) | 低速 / 毎秒2件 | 60 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [15-multilingual](#15-multilingual) | 多言語文字列 / UTF-8 | 120 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [16-decimal-amounts](#16-decimal-amounts) | 金額・数量 / 正確な小数 | 120 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [17-json-attributes](#17-json-attributes) | 任意属性 / JSON列 | 120 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [18-composite-key](#18-composite-key) | 複合主キー / グループと番号 | 120 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [19-derived-ratio](#19-derived-ratio) | 派生項目 / 差分と比率 | 120 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [20-conditional-values](#20-conditional-values) | 条件による値変更 | 120 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [21-insert-seed](#21-insert-seed) | CRUD 1 / 初回追加 | 120 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [22-upsert-refresh](#22-upsert-refresh) | CRUD 2 / 同じキーを更新 | 120 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [23-update-existing](#23-update-existing) | CRUD 3 / 既存行だけ更新 | 120 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [24-resume-sequence](#24-resume-sequence) | シーケンスの途中から再開 | 120 | MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です |
-| [25-mes-sensor-spike](#25-mes-sensor-spike) | 異常 / MES センサーの突発値 | 120 | 測定系への瞬間的なノイズや設備の異常発熱を想定。平均50付近の値に短い高値区間を混ぜます |
-| [26-mes-sensor-drift](#26-mes-sensor-drift) | 異常 / MES センサーの徐々なドリフト | 120 | 校正ずれや温度上昇で値が徐々に偏るケース。単発の閾値超過より検知しにくい変化を再現します |
-| [27-mes-stuck-signal](#27-mes-stuck-signal) | 異常 / MES センサー値の固着 | 120 | センサーや通信キャッシュが停止し、時刻やレコードは増えるのに測定値が変化しない状態 |
-| [28-mes-missing-values](#28-mes-missing-values) | 異常 / MES 測定値の欠測 | 120 | 一時的な機器読み取り失敗や、MESへの登録時に測定値が空になるケース |
-| [29-mes-late-events](#29-mes-late-events) | 異常 / MES 遅延・順序逆転 | 120 | 設備側のバッファやネットワーク遅延で、遅いイベント時刻のデータが後から到着する状態 |
-| [30-mes-clock-skew](#30-mes-clock-skew) | 異常 / MES 設備時計が未来へずれる | 120 | NTP不調や設備時計の設定誤りで、1日先の時刻が登録されるケース |
-| [31-mes-unit-mismatch](#31-mes-unit-mismatch) | 異常 / MES 単位・倍率の食い違い | 120 | 単位変更が伝わらず、kPa/Paやmm/µmのように1000倍の値が混在する状況 |
-| [32-mes-unknown-state](#32-mes-unknown-state) | 異常 / MES 未知の状態コード | 120 | 設備ファームウェアやMESバージョン更新で、未定義の状態コードが出るケース |
-| [33-mes-negative-quantity](#33-mes-negative-quantity) | 異常 / MES 負の生産数量 | 120 | 符号の取り違えや取消処理を通常実績として登録してしまうケース |
-| [34-mes-reject-exceeds-total](#34-mes-reject-exceeds-total) | 異常 / MES 不良数が生産数を超える | 120 | 不良実績の二重登録や集計単位の混在で、不良数が総数より大きくなる状態 |
-| [35-mes-impossible-yield](#35-mes-impossible-yield) | 異常 / MES 歩留まりが100%を超える | 120 | 歩留まりの分母間違い、パーセントと比率の混同などを想定 |
-| [36-mes-orphan-work-order](#36-mes-orphan-work-order) | 異常 / MES 存在しない製造指図 | 120 | MES実績がERPの指図マスターへ結合できないケース。連携順序のずれも想定します |
-| [37-mes-route-step-jump](#37-mes-route-step-jump) | 異常 / MES 工程番号の飛び | 120 | 工程スキップ、ルート版の違い、手入力ミスで予定外の工程番号が記録される状態 |
-| [38-erp-negative-stock](#38-erp-negative-stock) | 異常 / ERP マイナス在庫 | 120 | 出庫の先行連携、二重出庫、棚卸調整の誤りで在庫が負になるケース |
-| [39-erp-over-reservation](#39-erp-over-reservation) | 異常 / ERP 引当が在庫を超える | 120 | 並行した指図引当や在庫更新の遅れにより、在庫以上に予約される状態 |
-| [40-erp-amount-discrepancy](#40-erp-amount-discrepancy) | 異常 / ERP 数量×単価と金額の不一致 | 120 | 丸め差、税区分、転記ミス、誤った再計算で請求金額が合わないケース |
-| [41-erp-duplicate-document](#41-erp-duplicate-document) | 異常 / ERP 業務伝票の重複 | 120 | 取り込みの再実行や送信側リトライで、同じ伝票番号が別レコードとして届く状態 |
-| [42-erp-orphan-product](#42-erp-orphan-product) | 異常 / ERP 未登録の品目参照 | 120 | 品目マスターより先に明細が届く、または廃番・コード変換の誤りで結合に失敗するケース |
-| [43-invalid-value-type](#43-invalid-value-type) | 異常 / 数値欄へ文字列が混入 | 120 | 機器が数値の代わりにエラー文字列を返す、CSV連携で型推論が崩れる状況 |
-| [44-missing-required-field](#44-missing-required-field) | 異常 / 必須項目そのものが欠落 | 120 | ソースのスキーマ変更やシリアライズ不具合で、NULLではなくキー自体が消えるケース |
-| [45-sql-duplicate-primary-key](#45-sql-duplicate-primary-key) | 異常 / SQL 主キー重複 / 意図的な失敗 | 120 | 再送を単純insertで取り込んだ際の主キー衝突 |
-| [46-sql-rollback-fault](#46-sql-rollback-fault) | 異常 / SQL COMMIT前の障害 | 120 | DBの通信障害やアプリ停止で、書き込んだトランザクションがcommitされない状況 |
-| [47-sql-slow-batches](#47-sql-slow-batches) | 異常 / SQL 処理遅延 / 断続的な待機 | 120 | ロック待ちや処理遅延に似た、アプリ側の待機を再現します。実際にDBをロック・停止する機能ではありません |
-| [48-erp-cancelled-shipped](#48-erp-cancelled-shipped) | 異常 / ERP 取消済みなのに出荷済み | 120 | 取消伝票と出荷実績の連携順序や状態更新が食い違うケース |
+| [01-quickstart](#01-quickstart) | 小さく試す | 30 | 目標速度 10件/秒、1バッチ 10件で試す |
+| [02-volume-100k](#02-volume-100k) | 10万件 / 負荷計測 | 100000 | 目標速度 1,000件/秒、1バッチ 1,000件で試す |
+| [03-volume-1m](#03-volume-1m) | 100万件 / 連続生成 | 1000000 | 目標速度 5,000件/秒、1バッチ 2,000件で試す |
+| [04-volume-10m](#04-volume-10m) | 1000万件 / 大規模試験 | 10000000 | 目標速度 10,000件/秒、1バッチ 5,000件で試す |
+| [05-constant-baseline](#05-constant-baseline) | 固定値 / 基準データ | 120 | 値を常に50とし、他の条件変更前の基準データを作ります |
+| [06-uniform-range](#06-uniform-range) | 一様分布 / 範囲指定 | 120 | valueを-20〜120の範囲で均等に生成します |
+| [07-weighted-states](#07-weighted-states) | 状態比率 95 : 4 : 1 | 120 | statusはok / warning / stoppedを95:4:1で選択。重み付き選択の例 |
+| [08-nullable-measurements](#08-nullable-measurements) | 欠測あり / NULL率20% | 120 | valueの20%をNULLにします。欠測の取り込み・集計確認用 |
+| [09-cyclic-counter](#09-cyclic-counter) | 周期カウンター / 0〜59 | 120 | sequence_noが0〜59を繰り返します。idは各行で異なるため主キーは衝突しません |
+| [10-grouped-clock](#10-grouped-clock) | グループ時刻 / 20件で1秒 | 120 | 20レコードごとにevent_timeを1秒進めます。複数ソースから同時刻に発生するデータの例 |
+| [11-historical-replay](#11-historical-replay) | 過去データ / 時系列再現 | 120 | 過去の日付から0.1秒刻みで生成。生成速度とイベント日時を分けて制御します |
+| [12-high-cardinality](#12-high-cardinality) | 多数ソース / 10万種類 | 10000 | entity_noを1〜10万から選択。高カーディナリティ列の検証用 |
+| [13-burst-load](#13-burst-load) | バースト / 500件ずつ | 5000 | 500件ごとに1秒待機する、間欠的な投入負荷 |
+| [14-low-rate](#14-low-rate) | 低速 / 毎秒2件 | 60 | 少量ずつ増えるソースを再現。バッチ1件、毎秒2件 |
+| [15-multilingual](#15-multilingual) | 多言語文字列 / UTF-8 | 120 | 状態に日本語と英語を混在させ、文字化けや列長を確認します |
+| [16-decimal-amounts](#16-decimal-amounts) | 金額・数量 / 正確な小数 | 120 | demo_amountsを使用。数量・単価・計算金額を生成します。未作成ならテーブル作成操作が必要です |
+| [17-json-attributes](#17-json-attributes) | 任意属性 / JSON列 | 120 | demo_jsonを使用。入れ子の属性をSQLのJSON相当列へ保存する例 |
+| [18-composite-key](#18-composite-key) | 複合主キー / グループと番号 | 120 | demo_compositeを使用。group_noとsample_noの組み合わせを主キーにします |
+| [19-derived-ratio](#19-derived-ratio) | 派生項目 / 差分と比率 | 120 | demo_ratiosを使用。totalとrejectからgoodとyield_ratioを計算します |
+| [20-conditional-values](#20-conditional-values) | 条件による値変更 | 120 | statusがstoppedならvalueを0に置き換えます。先行項目を使った条件分岐の例 |
+| [21-insert-seed](#21-insert-seed) | CRUD 1 / 初回追加 | 120 | demo_upsertの初回投入用です。同じ主キーで繰り返し追加すると重複します |
+| [22-upsert-refresh](#22-upsert-refresh) | CRUD 2 / 同じキーを更新 | 120 | demo_upsertへ追加または更新します。21と同じキーを再利用でき、繰り返し実行できます |
+| [23-update-existing](#23-update-existing) | CRUD 3 / 既存行だけ更新 | 120 | 21または22で投入したdemo_upsertの行を、同じ主キーで更新します |
+| [24-resume-sequence](#24-resume-sequence) | シーケンスの途中から再開 | 120 | 既存系列と同じrun_key・seedを指定し、start_sequenceを変更する例 |
+| [25-mes-sensor-spike](#25-mes-sensor-spike) | 異常 / MES センサーの突発値 | 120 | valueを20〜39件目だけ250へ変更。前後は通常の正規分布です |
+| [26-mes-sensor-drift](#26-mes-sensor-drift) | 異常 / MES センサーの徐々なドリフト | 120 | valueへ20件目から1件ごとに2を追加するramp。39件目で最大+38、その後は復帰 |
+| [27-mes-stuck-signal](#27-mes-stuck-signal) | 異常 / MES センサー値の固着 | 120 | 20〜39件目のvalueを20件目の値に固定します。IDとevent_timeは進みます |
+| [28-mes-missing-values](#28-mes-missing-values) | 異常 / MES 測定値の欠測 | 120 | 20〜39件目で50%の確率でvalueをNULL。seedが同じなら欠測位置も再現します |
+| [29-mes-late-events](#29-mes-late-events) | 異常 / MES 遅延・順序逆転 | 120 | 20〜39件目のうち2件ごとにevent_timeを120秒戻します。配送順そのものはシーケンス順です |
+| [30-mes-clock-skew](#30-mes-clock-skew) | 異常 / MES 設備時計が未来へずれる | 120 | 20〜39件目のevent_timeを86400秒進めます。タイムゾーン表記は有効なままです |
+| [31-mes-unit-mismatch](#31-mes-unit-mismatch) | 異常 / MES 単位・倍率の食い違い | 120 | 20〜39件目のvalueを1000倍にします。列名や型は変えません |
+| [32-mes-unknown-state](#32-mes-unknown-state) | 異常 / MES 未知の状態コード | 120 | 20〜39件目のstatusをUNKNOWN_CODEへ変更します。文字列としては正常です |
+| [33-mes-negative-quantity](#33-mes-negative-quantity) | 異常 / MES 負の生産数量 | 120 | totalを-20へ変更。good/reject/yield_ratioは変更前の計算値を残します |
+| [34-mes-reject-exceeds-total](#34-mes-reject-exceeds-total) | 異常 / MES 不良数が生産数を超える | 120 | rejectを180へ変更。通常のtotalは100〜120です |
+| [35-mes-impossible-yield](#35-mes-impossible-yield) | 異常 / MES 歩留まりが100%を超える | 120 | yield_ratioだけを1.2へ変更。total/good/rejectは正常のままです |
+| [36-mes-orphan-work-order](#36-mes-orphan-work-order) | 異常 / MES 存在しない製造指図 | 120 | work_order_idをWO-MISSINGへ変更。通常の有効IDはparameters.valid_work_ordersに列挙しています |
+| [37-mes-route-step-jump](#37-mes-route-step-jump) | 異常 / MES 工程番号の飛び | 120 | process_stepへ100を加えます。通常は0〜4の周期です |
+| [38-erp-negative-stock](#38-erp-negative-stock) | 異常 / ERP マイナス在庫 | 120 | qty_on_handを-5へ変更。reserved/availableは元の値を残します |
+| [39-erp-over-reservation](#39-erp-over-reservation) | 異常 / ERP 引当が在庫を超える | 120 | reservedを2000へ変更。通常qty_on_handは100〜1000です |
+| [40-erp-amount-discrepancy](#40-erp-amount-discrepancy) | 異常 / ERP 数量×単価と金額の不一致 | 120 | amountへ0.01加算。quantityとunit_priceは変更しません |
+| [41-erp-duplicate-document](#41-erp-duplicate-document) | 異常 / ERP 業務伝票の重複 | 120 | 20〜39件目のdocument_idを先頭行の番号に置き換えます。技術的なidは異なるため通常のPKでは検知できません |
+| [42-erp-orphan-product](#42-erp-orphan-product) | 異常 / ERP 未登録の品目参照 | 120 | product_idをPRODUCT-MISSINGへ変更。通常の有効コードはparameters.valid_productsに列挙しています |
+| [43-invalid-value-type](#43-invalid-value-type) | 異常 / 数値欄へ文字列が混入 | 120 | valueへSENSOR_ERRORを入れ、型検証の迂回を明示的に有効化します |
+| [44-missing-required-field](#44-missing-required-field) | 異常 / 必須項目そのものが欠落 | 120 | 20〜39件目のvalueキーを削除します。JSON/ストリームは欠落、CSVは空セルになります |
+| [45-sql-duplicate-primary-key](#45-sql-duplicate-primary-key) | 異常 / SQL 主キー重複 / 意図的な失敗 | 120 | 10件ずつcommit。20〜39件目のidを先頭のidへ変更し、重複するバッチはrollbackします |
+| [46-sql-rollback-fault](#46-sql-rollback-fault) | 異常 / SQL COMMIT前の障害 | 120 | 1バッチ目の書き込み後・COMMIT前に意図的な例外を発生させます |
+| [47-sql-slow-batches](#47-sql-slow-batches) | 異常 / SQL 処理遅延 / 断続的な待機 | 120 | 最初の3バッチの処理前に1秒ずつ待機します |
+| [48-erp-cancelled-shipped](#48-erp-cancelled-shipped) | 異常 / ERP 取消済みなのに出荷済み | 120 | statusだけをCANCELLEDへ変更。CLOSEDだった行のshipped_qtyは正のまま残ります |
 
 ## ひな型ごとの内容
 
@@ -241,7 +241,7 @@
 **CRUD 1 / 初回追加** · [JSONをダウンロード](21-insert-seed.json)
 
 - **想定する状況**　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。
-- **このプリセットの内容**　demo_upsertへ同じrun_keyとseedで120件生成。21は初回だけ、22は繰り返し可能、23は21または22の実行後に使用します。 件数120、目標速度0件/秒（0は制限なし）。
+- **このプリセットの内容**　demo_upsertの初回投入用です。同じ主キーで繰り返し追加すると重複します。 件数120、目標速度0件/秒（0は制限なし）。
 - **確認すること**　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。
 - **実行前の条件**　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。
 
@@ -250,7 +250,7 @@
 **CRUD 2 / 同じキーを更新** · [JSONをダウンロード](22-upsert-refresh.json)
 
 - **想定する状況**　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。
-- **このプリセットの内容**　demo_upsertへ同じrun_keyとseedで120件生成。21は初回だけ、22は繰り返し可能、23は21または22の実行後に使用します。 件数120、目標速度0件/秒（0は制限なし）。
+- **このプリセットの内容**　demo_upsertへ追加または更新します。21と同じキーを再利用でき、繰り返し実行できます。 件数120、目標速度0件/秒（0は制限なし）。
 - **確認すること**　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。
 - **実行前の条件**　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。
 
@@ -259,7 +259,7 @@
 **CRUD 3 / 既存行だけ更新** · [JSONをダウンロード](23-update-existing.json)
 
 - **想定する状況**　MES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。
-- **このプリセットの内容**　demo_upsertへ同じrun_keyとseedで120件生成。21は初回だけ、22は繰り返し可能、23は21または22の実行後に使用します。 件数120、目標速度0件/秒（0は制限なし）。
+- **このプリセットの内容**　21または22で投入したdemo_upsertの行を、同じ主キーで更新します。 件数120、目標速度0件/秒（0は制限なし）。
 - **確認すること**　投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。
 - **実行前の条件**　接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。
 

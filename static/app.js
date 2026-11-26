@@ -34,7 +34,7 @@ function notify(text, error = false) {
 }
 // 本文なしはGET、ありはJSON POSTで同一画面のAPIを呼ぶ。JSONを返し、HTTP失敗は詳細付き例外に変換する。
 async function api(path, body) {
-  const r = await fetch(
+  const r = await fetchWithOperationConfirmation(
     path,
     body === undefined
       ? {}
@@ -44,7 +44,9 @@ async function api(path, body) {
           body: JSON.stringify(body),
         },
   );
-  return readApiJson(r);
+  const data = await readApiJson(r);
+  showPreviewWarnings(path, data);
+  return data;
 }
 const action =
   /* ボタンを操作関数へ接続し、実行中の再操作防止と通知を共通化する。 */
@@ -535,17 +537,10 @@ function sqlActionSnapshot() {
   return {spec, profile};
 }
 
-// 書き込み前は現行版を再確認し、表作成と既存行を変え得る操作は対象を明示して確認する。
-async function sqlDatabaseAction(
-  path, request = api, confirmWrite = (message) => window.confirm(message),
-  refresh = refreshConnections,
-) {
-  const snapshot = sqlActionSnapshot();
-  const {spec, profile} = snapshot;
-  const prepare = path === "/api/table/prepare";
-  const start = path === "/api/runs";
-  const risky = start && ["update", "delete", "upsert"].includes(spec.sql.operation);
-  if (prepare || start) {
+// 書き込み前に現行版を照合し、サーバーの確認フローへ同じ設定を渡す。
+async function sqlDatabaseAction(path, request = api, refresh = refreshConnections) {
+  const {spec, profile} = sqlActionSnapshot();
+  if (path === "/api/table/prepare" || path === "/api/runs") {
     const latest = (await request("/api/connections")).connections
       .find((p) => p.id === profile.id);
     if (latest?.revision !== profile.revision) {
@@ -556,27 +551,6 @@ async function sqlDatabaseAction(
     if (JSON.stringify(sqlActionSnapshot().spec) !== JSON.stringify(spec))
       throw new Error("実行条件が変更されました。確認してからやり直してください。");
   }
-  if (prepare || risky) {
-    const table = spec.sql.schema_name
-      ? spec.sql.schema_name + "." + spec.sql.table
-      : spec.sql.table + "（接続先の既定スキーマ）";
-    const destination = profile.name + " / " + profile.id + " · " +
-      profile.kind + " · 版 " + spec.connection_revision;
-    const scope = "接続先: " + destination + "\n対象テーブル: " + table;
-    const operation = {
-      update: "既存行を更新",
-      delete: "既存行を削除",
-      upsert: "未登録行を追加し、該当する既存行を更新",
-    };
-    const message = prepare
-      ? "未作成のテーブルを作成します。\n" + scope + "\n既存テーブルは変更しません。"
-      : "データベースへの書き込みを開始します。\n" + scope +
-        "\n操作: " + spec.sql.operation + "（" + operation[spec.sql.operation] + "）" +
-        "\n設定した生成行数: " + spec.rows.toLocaleString("ja-JP") + "件" +
-        "\n実際の更新・削除件数や連鎖処理の件数を示すものではありません。";
-    if (!confirmWrite(message)) return null;
-  }
-  // 確認直後に接続先が更新されても、サーバーには確認済みの版だけを指定する。
   return request(path, spec);
 }
 
@@ -1588,7 +1562,6 @@ async function init() {
     const run = state.info.kind === "sql"
       ? await sqlDatabaseAction("/api/runs")
       : await api("/api/runs", runSpec());
-    if (run === null) return;
     state.current = run.id;
     notify("生成を開始しました。実行ID: " + run.id);
     await refreshHistory();
@@ -1598,9 +1571,8 @@ async function init() {
     ["#showDdl", "ddl"],
     ["#prepareTable", "prepare"],
   ])
-    action(id, /* 選択したSQL操作の結果だけを表示し、表作成の取消時は要求しない。 */ async () => {
-      const result = await sqlDatabaseAction("/api/table/" + path);
-      if (result !== null) previewResult(result);
+    action(id, async () => {
+      previewResult(await sqlDatabaseAction("/api/table/" + path));
     });
   action("#newConnection", /* 現在時刻から仮IDを作り、許可種別の先頭で新規接続の編集画面を開く。保存前に通信はしない。 */ () =>
     editConnection({

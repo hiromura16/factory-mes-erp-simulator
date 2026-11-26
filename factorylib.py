@@ -23,11 +23,13 @@ from fastapi.responses import FileResponse, Response, JSONResponse, PlainTextRes
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from operation_confirmation import CONFIRMATION_HEADER, install_operation_gate
 from api_support import (
     display_location, history_error, install_error_handlers, install_help,
     management_credentials, unauthorized_management,
 )
 from config import ALLOWED_KINDS, ConnectionProfile, RunSpec
+from generation import anomaly_warnings
 from generation import (
     GenerationError,
     batch_limit,
@@ -499,6 +501,7 @@ def create_app(kind, title, adapter):
 
     app.mount("/static", StaticFiles(directory=root / "static"), name="static")
     install_help(app, root, False, kind, credentials)
+    gate = install_operation_gate(app, kind, store, RunSpec, RetryRequest)
 
     @app.get("/", include_in_schema=False)
     def index():
@@ -800,6 +803,7 @@ def create_app(kind, title, adapter):
         return {
             "sample_sequences": [spec.start_sequence + i for i in offsets],
             "anomaly_hits": anomaly_hits,
+            "warnings": anomaly_warnings(spec),
             "validated_spec": spec.model_dump(mode="json"),
             "compact_spec": {"version": spec.version, **spec.model_dump(mode="json", exclude_defaults=True)},
             "writes": False,
@@ -820,10 +824,12 @@ def create_app(kind, title, adapter):
         tags=['実行・出力'],
         responses={409: {'description': '実行枠または接続設定を確認してください'}},
     )
-    def start(spec: RunSpec):
+    def start(request: Request, spec: RunSpec):
         """現在の接続先の版でバックグラウンド実行を作ります。202は受付です。応答の id を run_id に指定して履歴を確認します。"""
         checked(spec)
         _, revision = profile(spec.connection_id, spec.connection_revision)
+        operation = gate.assess("/api/runs", spec, revision)
+        gate.require(operation, request.headers.get(CONFIRMATION_HEADER))
         return runtime.start(spec.model_copy(update={"connection_revision": revision}))
 
     @app.get(
@@ -892,10 +898,12 @@ def create_app(kind, title, adapter):
             summary='未作成テーブルを作る',
             tags=['実行・出力'],
         )
-        def prepare(spec: RunSpec):
+        def prepare(request: Request, spec: RunSpec):
             """指定先にテーブルが存在しない場合にDDLを実行します。書き込むDB・スキーマ・テーブルを確認して指定します。"""
             checked(spec)
-            value, _ = profile(spec.connection_id, spec.connection_revision)
+            value, revision = profile(spec.connection_id, spec.connection_revision)
+            operation = gate.assess("/api/table/prepare", spec, revision)
+            gate.require(operation, request.headers.get(CONFIRMATION_HEADER))
             return safe_call(adapter.prepare_table, value, spec)
 
         @app.post(

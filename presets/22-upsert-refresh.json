@@ -1,7 +1,7 @@
 {
   "version": 2,
   "name": "CRUD 2 / 同じキーを更新",
-  "description": "【想定する状況】\nMES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。\n\n【このプリセットの内容】\ndemo_upsertへ同じrun_keyとseedで120件生成。21は初回だけ、22は繰り返し可能、23は21または22の実行後に使用します。 件数120、目標速度0件/秒（0は制限なし）。\n\n【確認すること】\n投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。\n\n【実行前の条件】\n接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。",
+  "description": "【想定する状況】\nMES・ERPのソースDBからCDCで取り込む前の、正常データの基準・DB書き込み挙動を確認する想定です。\n\n【このプリセットの内容】\ndemo_upsertへ追加または更新します。21と同じキーを再利用でき、繰り返し実行できます。 件数120、目標速度0件/秒（0は制限なし）。\n\n【確認すること】\n投入前後の行数、主キーの重複、列型、COMMIT単位、CDCでの変更内容。\n\n【実行前の条件】\n接続先を選択し、列・主キーを確認してください。独自テーブルのプリセットは接続先のDDLを確認し、必要に応じて作成してください。 設定は自由に変更して別名保存できます。",
   "connection_id": "default",
   "connection_revision": null,
   "run_key": "crud-demo",
@@ -210,6 +210,7 @@
     "operation": "upsert"
   },
   "files": {
+    "completion_mode": "manifest-v2",
     "formats": [
       "json",
       "csv",
@@ -231,6 +232,17 @@
     "csv_encoding": "utf-8-sig",
     "write_sidecars": true,
     "write_manifest": true,
+    "xlsx_sheet": "Data",
+    "xlsx_allow_formulas": false,
+    "xml_root": "records",
+    "xml_row": "record",
+    "parquet_compression": "snappy",
+    "avro_record_name": "SourceRecord",
+    "avro_namespace": "factory.source",
+    "avro_codec": "deflate",
+    "pdf_landscape": true,
+    "pdf_font_size": 8,
+    "pdf_columns": [],
     "image": {
       "width": 320,
       "height": 240,
@@ -251,6 +263,8 @@
     "http_body": "array",
     "topic_template": "",
     "payload_template": null,
+    "message_size_bytes": 0,
+    "duplicate_rate": 0.0,
     "delivery_attempts": null,
     "retry_backoff_ms": null
   },
