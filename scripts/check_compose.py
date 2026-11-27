@@ -140,7 +140,11 @@ def wait_ready():
             read_http("/healthz")
             assert read_http("/api/info")["kind"] == "sql"
             return
-        except (URLError, TimeoutError):
+        except HTTPError:
+            # HTTP応答まで到達したエラーは通信の起動競合と区別する。
+            raise
+        except (URLError, TimeoutError, ConnectionResetError):
+            # Dockerのポート公開が先行すると、接続拒否・リセット・EOFがあり得る。
             if time.monotonic() >= deadline:
                 raise
             time.sleep(0.5)
@@ -171,6 +175,18 @@ def stop_synthetic(base):
         if network["Name"] != NETWORK:
             raise SystemExit("Unexpected Compose network; no cleanup performed.")
     call(*base, "down", "--volumes", "--timeout", "10")
+
+
+def print_runtime_diagnostics(base):
+    """削除前に合成専用サービスの状態と直近ログだけを表示する。"""
+    for args in (
+        ("ps", "--all"),
+        ("logs", "--no-color", "--tail", "40", "app"),
+    ):
+        try:
+            print(call(*base, *args), flush=True)
+        except (OSError, subprocess.SubprocessError) as exc:
+            print(f"Compose diagnostics unavailable ({args[0]}): {exc}", flush=True)
 
 
 def smoke(directory):
@@ -226,6 +242,9 @@ def smoke(directory):
         else:
             raise AssertionError("Preset unexpectedly persisted after isolated reset")
         print("Compose runtime OK: exact names, health, preview, persistence, reset")
+    except Exception:
+        print_runtime_diagnostics(base)
+        raise
     finally:
         stop_synthetic(base)
         require_empty()
