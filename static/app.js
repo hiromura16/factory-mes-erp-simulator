@@ -1447,7 +1447,8 @@ async function init() {
   await Promise.all([refreshConnections(), refreshPresets()]);
   editConnection(state.connections[0]);
   window.FactoryComparison.mount({
-    app: "mes-erp-simulator",
+    // 比較のお気に入りキー・書き出し名だけに使用する。APIのkindはsqlのまま。
+    app: "factory-sql-data-loader",
     listPresets: () => state.presets,
     currentSpec: () => runSpec(false),
     preview: (candidate) => api("/api/preview", candidate),
