@@ -1,4 +1,5 @@
 {
+  "name": "factory-sql-data-loader",
   "services": {
     "app": {
       "build": {
@@ -25,12 +26,12 @@
       "pids_limit": 128,
       "stop_grace_period": "90s",
       "ports": [
-        "${BIND_IP:-127.0.0.1}:${APP_PORT}:8080"
+        "${BIND_IP:-127.0.0.1}:${APP_PORT:-3560}:8080"
       ],
       "environment": {
         "TZ": "${TZ:-Asia/Tokyo}",
         "DATA_DIR": "/data",
-        "APP_PORT": "${APP_PORT}",
+        "APP_PORT": "${APP_PORT:-3560}",
         "MIN_AVAILABLE_GIB": "${MIN_AVAILABLE_GIB:-1}",
         "SQL_HOST": "${SQL_HOST:-}",
         "SQL_PORT": "${SQL_PORT:-3510}",

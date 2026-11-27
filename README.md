@@ -8,8 +8,10 @@ Linux VMに Docker Compose を用意します。別端末からの接続やホ�
 
 ```sh
 python3 scripts/init_local.py --private-dir ./private --data-dir ./data --env-file .env
-docker compose -p factory-mes-erp-simulator up -d --build
+docker compose up -d --build
 ```
+
+プロジェクト名は `factory-sql-data-loader` です。旧配備を更新する場合は、実行前に[新しいボリュームと旧配備の扱い](docs/vm-compose.md#旧配備から切り替える場合)を確認します。
 
 VMで `http://127.0.0.1:3560/` を開きます。メニューの「ヘルプ」から、見本の出し方、設定、APIを調べられます。 別端末から管理操作をする場合は[管理画面の認証](docs/vm-compose.md#管理画面の認証)も設定します。
 

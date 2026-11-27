@@ -66,3 +66,7 @@ jobs:
             docker logs factory-smoke
             exit 1
           fi
+      - name: Verify canonical Compose resources on this disposable runner
+        if: matrix.python == '3.12'
+        timeout-minutes: 6
+        run: uv run --frozen python scripts/check_compose.py --smoke

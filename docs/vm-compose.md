@@ -29,15 +29,25 @@ ssh -N -L 3560:127.0.0.1:3560 user@vm-address
 
 - 初回はSQLiteで試せます。`SQL_HOST` でSQL Serverを初期登録する場合は、`SQL_PASSWORD_FILE` にUID 1000が読み取れる非公開ファイルを指定します。
 
-`docker compose ls` で既存のプロジェクト名を確認し、引き継ぐ配備では同じ名前を `-p` で指定します。ボリュームはプロジェクト名で識別されます。 この手順では従来の既定名 `factory-mes-erp-simulator` を明示して、リポジトリ名変更後も既存のデータを参照します。配備で別の名前を使っている場合はそちらに置き換えます。
+既定のComposeプロジェクト名は `factory-sql-data-loader` です。チェックアウト先のディレクトリ名に関係なく、`-p` を付けずに起動します。意図しない別名で起動しないよう、端末や `.env` に残っている `COMPOSE_PROJECT_NAME` の指定を確認します。
+
+| 対象 | 既定名 |
+| --- | --- |
+| プロジェクト | `factory-sql-data-loader` |
+| アプリコンテナ | `factory-sql-data-loader-app-1` |
+| データボリューム | `factory-sql-data-loader_app-data` |
+| 既定ネットワーク | `factory-sql-data-loader_default` |
+| アプリのイメージ | `factory-sql-data-loader:local` |
+| ポート | ホストの `127.0.0.1:3560` → コンテナの `8080` |
 
 ## 2. ビルド・起動する
 
 ```sh
-docker compose -p factory-mes-erp-simulator config --quiet
-docker compose -p factory-mes-erp-simulator up -d --build
-docker compose -p factory-mes-erp-simulator ps
+docker compose config --quiet
+docker compose up -d --build
+docker compose ps
 curl -fsS --retry 12 --retry-connrefused --retry-delay 1 --max-time 5 http://127.0.0.1:3560/healthz
+curl -fsS http://127.0.0.1:3560/api/info
 curl -fsS http://127.0.0.1:3560/api/runs
 ```
 
@@ -52,8 +62,8 @@ VMの到達可能なインターフェースに公開したホストポートで
 ```sh
 docker network inspect lakehouse-input
 export LAKEHOUSE_NETWORK=lakehouse-input
-docker compose -p factory-mes-erp-simulator -f compose.yaml -f compose.lakehouse-network.yaml config --quiet
-docker compose -p factory-mes-erp-simulator -f compose.yaml -f compose.lakehouse-network.yaml up -d --build
+docker compose -f compose.yaml -f compose.lakehouse-network.yaml config --quiet
+docker compose -f compose.yaml -f compose.lakehouse-network.yaml up -d --build
 ```
 
 管理画面と操作APIは既定では認証を要求しません。認証付きで使う手順は[管理画面の認証](#管理画面の認証)にあります。ホスト側で `127.0.0.1` にバインドしても、共有ネットワークの参加コンテナは管理画面と操作APIに到達できます。信頼済みの収集・試験サービス専用のネットワークを使います。
@@ -69,10 +79,25 @@ docker compose -p factory-mes-erp-simulator -f compose.yaml -f compose.lakehouse
 3. 通常設定に認証用Composeを加えて起動します。
 
 ```sh
-docker compose -p factory-mes-erp-simulator -f compose.yaml -f compose.admin-auth.yaml up -d --build
+docker compose -f compose.yaml -f compose.admin-auth.yaml up -d --build
 ```
 
-共有ネットワークやNFSを使用する場合は、そのオーバーライドも同じコマンドに加えます。管理画面・ヘルプ・操作API・接続ファイルのアップロードは同じ認証で保護されます。`/healthz` は稼働確認用です。公開データ取得APIを持つアプリの取得用認証は、公開プロファイルで設定します。
+共有ネットワークも使用する場合は、認証用と同時にオーバーライドを指定します。
+
+```sh
+docker compose -f compose.yaml -f compose.lakehouse-network.yaml -f compose.admin-auth.yaml config --quiet
+docker compose -f compose.yaml -f compose.lakehouse-network.yaml -f compose.admin-auth.yaml up -d --build
+```
+
+管理画面・ヘルプ・操作API・接続ファイルのアップロードは同じ認証で保護されます。`/healthz` は稼働確認用です。公開データ取得APIを持つアプリの取得用認証は、公開プロファイルで設定します。
+
+## 旧配備から切り替える場合
+
+旧配備で使われていた `factory-mes-erp-simulator` などは、現在の起動名には指定しません。新しいプロジェクトは新しいデータボリュームを使い、旧設定・履歴・プリセットを自動移行しません。旧ボリュームを新配備に接続する互換設定はありません。
+
+`docker compose ls` と `docker volume ls` で稼働中の配備とデータの所在を確認します。旧配備が同じポートを使用している場合は、管理者が停止時期を調整してください。切り戻しが必要なら、旧配備とデータは別のまま保全します。通常停止や更新ではボリューム削除を指定しません。
+
+ブラウザーのお気に入りはアプリのデータボリュームとは別です。比較画面の保存名も新しいアプリ名に揃えたため、同じブラウザーでも旧保存名のお気に入りは自動移行されません。必要なひな型は比較画面で登録し直します。サーバー側のひな型・実行履歴には影響しません。
 
 ## リソースの設定
 
@@ -85,10 +110,10 @@ docker compose -p factory-mes-erp-simulator -f compose.yaml -f compose.admin-aut
 画面で発生器またはジョブを停止し、停止・完了を確認してからコンテナを止めます。
 
 ```sh
-docker compose -p factory-mes-erp-simulator stop
-docker compose -p factory-mes-erp-simulator up -d --build
+docker compose stop
+docker compose up -d --build
 ```
 
-共有ネットワーク、NFS、管理Basic認証を設定した場合は、更新時も起動時と同じ `-f` と環境変数を指定します。設定DB、暗号鍵、永続データをバックアップし、ボリューム `app-data` とホストマウントを引き継ぎます。更新後も停止状態または実行履歴を確認します。
+共有ネットワーク、管理Basic認証を設定した場合は、更新時も起動時と同じ `-f` と環境変数を指定します。設定DB、暗号鍵、永続データをバックアップし、ボリューム `app-data` とホストマウントを引き継ぎます。更新後も停止状態または実行履歴を確認します。
 
 HTTP(S)プロキシが必要なビルドでは `.env.example` の大文字・小文字の対を同じ値に設定します。実行時の通信はネットワーク、DNS、ポート、認証を個別に確認します。
